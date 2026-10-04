@@ -1,7 +1,9 @@
 # Agent guide
 
-This repository owns Computer MCP's organization profile and visual identity:
-`DESIGN.md`, the renderer and exports in `Brand/`, and the reusable brand check.
+This repository owns Computer MCP's organization profile, the cross-repository
+conventions in `MAINTENANCE.md`, the default community files, and the visual
+identity: `DESIGN.md`, the renderer and exports in `Brand/`, and the reusable
+brand check.
 Product meaning stays with the main repository's ProductIdentity; text rendered
 into images must match it. Preserve repository visibility and integration
 ownership.

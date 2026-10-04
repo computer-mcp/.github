@@ -1,0 +1,71 @@
+name: Bug report
+description: Report reproducible behavior in a Computer MCP component.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        Remove secrets, tokens and private tool output before submitting.
+        Report security issues privately instead.
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - Computer MCP App or CLI
+        - Plugin
+        - Apple CLI
+        - Homebrew tap
+        - Website or plugin catalog
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: The component's version, such as 1.3.2 or the plugin's release.
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version
+    validations:
+      required: true
+  - type: input
+    id: host
+    attributes:
+      label: Host and client
+      description: >-
+        The Computer MCP version and MCP client (ChatGPT, Codex or another
+        client), with the profile and workspace count when relevant.
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: >-
+        The failing command or tool call, redacted configuration, and App
+        Diagnostics or audit error codes.
