@@ -1,9 +1,13 @@
 # Computer MCP organization
 
-This repository owns the organization profile and the visual identity every
-Computer MCP repository shares.
+This repository owns the organization profile, the visual identity and the
+conventions every Computer MCP repository shares.
 
 - `profile/README.md` is the public organization entry point.
+- `MAINTENANCE.md` holds the cross-repository conventions. The community files
+  (`CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `GOVERNANCE.md`, `SECURITY.md`,
+  `SUPPORT.md`, `.github/ISSUE_TEMPLATE/` and the pull request template) apply
+  to every repository without its own version.
 - `DESIGN.md` is the design system: tokens, components, the icon family and
   composition rules.
 - `Brand/` holds the renderer, its configuration and the rendered `Exports/`
