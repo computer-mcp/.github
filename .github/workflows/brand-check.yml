@@ -1,0 +1,44 @@
+name: Brand
+on:
+  workflow_call:
+    inputs:
+      lock:
+        description: Brand lock path in the calling repository
+        type: string
+        default: Documentation/Brand/brand.lock.json
+permissions:
+  contents: read
+jobs:
+  brand:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Verify locked brand delivery
+        env:
+          LOCK: ${{ inputs.lock }}
+        run: |
+          python3 - "$LOCK" <<'PY'
+          import hashlib, json, sys
+          from pathlib import Path
+
+          root = Path.cwd().resolve()
+          lock = json.loads((root / sys.argv[1]).read_text())
+          if lock.get("schema_version") != 2 or lock.get("authority") != "https://github.com/computer-mcp/.github":
+              sys.exit(f"{sys.argv[1]} is not a Computer MCP brand lock")
+          errors = []
+          for name, expected in lock["files"].items():
+              path = (root / name).resolve()
+              if not path.is_relative_to(root) or not path.is_file():
+                  errors.append(f"Missing brand file: {name}")
+              elif hashlib.sha256(path.read_bytes()).hexdigest() != expected:
+                  errors.append(f"Brand file differs from its lock: {name}")
+          for name, required in lock["entries"].items():
+              path = root / name
+              text = path.read_text() if path.is_file() else ""
+              errors += [f"{name} lacks {value!r}" for value in required if value not in text]
+          print("\n".join(errors) or f"Brand lock verified for {lock['consumer']}")
+          sys.exit(1 if errors else 0)
+          PY

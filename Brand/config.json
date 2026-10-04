@@ -1,0 +1,179 @@
+{
+  "schema_version": 1,
+  "authority": "https://github.com/computer-mcp/.github",
+  "fonts": [
+    {
+      "family": "Bricolage Grotesque",
+      "weight": "200 800",
+      "url": "https://raw.githubusercontent.com/google/fonts/9710da1eacb3be272583c3224dcb70f9da6eadbb/ofl/bricolagegrotesque/BricolageGrotesque%5Bopsz%2Cwdth%2Cwght%5D.ttf",
+      "sha256": "413e7357809ddd12fd80a96a8a396de0e401638d4acd3cb3e37532f0472ac682"
+    },
+    {
+      "family": "JetBrains Mono",
+      "weight": "100 800",
+      "url": "https://raw.githubusercontent.com/google/fonts/9710da1eacb3be272583c3224dcb70f9da6eadbb/ofl/jetbrainsmono/JetBrainsMono%5Bwght%5D.ttf",
+      "sha256": "48715a42ec242c21e9f02692891e147d022299a52e48d5e413e1a942193ffeda"
+    },
+    {
+      "family": "Noto Sans SC",
+      "weight": "100 900",
+      "url": "https://raw.githubusercontent.com/google/fonts/9710da1eacb3be272583c3224dcb70f9da6eadbb/ofl/notosanssc/NotoSansSC%5Bwght%5D.ttf",
+      "sha256": "a3041811a78c361b1de50f953c805e0244951c21c5bd412f7232ef0d899af0da"
+    }
+  ],
+  "copy": {
+    "headline": {
+      "en": "Wherever you chat, your computer is there.",
+      "zh-CN": "聊天在哪，你的电脑就在哪。"
+    },
+    "request": {
+      "en": "Set the checkout timeout to 30 seconds, then run the tests.",
+      "zh-CN": "把结账页的超时改成 30 秒，再跑一下测试。"
+    },
+    "capabilities": ["Files", "Shell", "CLI", "MCP", "Skills", "Computer Use"],
+    "planes": {
+      "workspace": "~/Developer/shop",
+      "capabilities": { "en": "Tools you allow", "zh-CN": "你允许的工具" }
+    }
+  },
+  "members": [
+    {
+      "repository": "computer-mcp",
+      "glyph": "node",
+      "title": "Computer MCP",
+      "line": {
+        "en": "Wherever you chat, your computer is there.",
+        "zh-CN": "聊天在哪，你的电脑就在哪。"
+      }
+    },
+    {
+      "repository": "plugin-codex",
+      "glyph": "braces",
+      "title": "Codex",
+      "eyebrow": "Computer MCP plugin",
+      "line": { "en": "Codex execution and protocol inspection" }
+    },
+    {
+      "repository": "plugin-computer-use",
+      "glyph": "pointer",
+      "title": "Computer Use",
+      "eyebrow": "Computer MCP plugin",
+      "line": { "en": "Native desktop observation and actions" }
+    },
+    {
+      "repository": "plugin-claude",
+      "glyph": "speech",
+      "title": "Claude Code",
+      "eyebrow": "Computer MCP plugin",
+      "line": { "en": "Claude Code CLI and streaming MCP adapter" }
+    },
+    {
+      "repository": "plugin-cursor",
+      "glyph": "caret",
+      "title": "Cursor",
+      "eyebrow": "Computer MCP plugin",
+      "line": { "en": "Cursor Agent CLI and ACP integration" }
+    },
+    {
+      "repository": "plugin-swift-format",
+      "glyph": "bars",
+      "title": "Swift Format",
+      "eyebrow": "Computer MCP plugin",
+      "line": { "en": "Verified Swift formatting and linting" }
+    },
+    {
+      "repository": "plugin-trae",
+      "glyph": "play",
+      "title": "TRAE",
+      "eyebrow": "Computer MCP plugin",
+      "line": { "en": "TRAE sessions through ACP" }
+    },
+    {
+      "repository": "apple-cli",
+      "glyph": "prompt",
+      "title": "Apple CLI",
+      "eyebrow": "Computer MCP tool",
+      "line": { "en": "A local macOS CLI and MCP server for Apple apps" }
+    },
+    {
+      "repository": "homebrew-tap",
+      "glyph": "tray",
+      "title": "Homebrew Tap",
+      "eyebrow": "Computer MCP distribution",
+      "line": { "en": "Install Computer MCP and Apple CLI with Homebrew" }
+    }
+  ],
+  "consumers": {
+    ".github": {
+      "lock": "profile/brand/brand.lock.json",
+      "files": {
+        "profile/brand/header-light.png": "headers/computer-mcp-light.png",
+        "profile/brand/header-dark.png": "headers/computer-mcp-dark.png",
+        "profile/brand/avatar.png": "web/avatar.png"
+      },
+      "entries": {
+        "profile/README.md": ["Computer MCP", "brand/header-light.png", "brand/header-dark.png", "@headline.en"]
+      }
+    },
+    "computer-mcp": {
+      "lock": "Documentation/Brand/brand.lock.json",
+      "files": {
+        "Documentation/Brand/header-light.png": "headers/computer-mcp-light.png",
+        "Documentation/Brand/header-dark.png": "headers/computer-mcp-dark.png",
+        "Documentation/Brand/header-zh-CN-light.png": "headers/computer-mcp-zh-CN-light.png",
+        "Documentation/Brand/header-zh-CN-dark.png": "headers/computer-mcp-zh-CN-dark.png",
+        "Documentation/Brand/social.png": "social/computer-mcp.png",
+        "Documentation/Brand/social-zh-CN.png": "social/computer-mcp-zh-CN.png",
+        "Documentation/Brand/icon.png": "app/app-icon.png",
+        "Resources/ComputerMCPApp/AppIcon.icon/": "app/AppIcon.icon/"
+      },
+      "entries": {
+        "README.md": ["Computer MCP", "Documentation/Brand/header-light.png", "Documentation/Brand/header-dark.png", "@headline.en"],
+        "README.zh-CN.md": ["Computer MCP", "Documentation/Brand/header-zh-CN-light.png", "Documentation/Brand/header-zh-CN-dark.png", "@headline.zh-CN"]
+      }
+    },
+    "computer-mcp.github.io": {
+      "lock": "public/brand/brand.lock.json",
+      "files": {
+        "public/brand/icon.svg": "app/app-icon.svg",
+        "public/brand/favicon.svg": "web/favicon.svg",
+        "public/brand/favicon-32.png": "web/favicon-32.png",
+        "public/brand/apple-touch-icon.png": "web/apple-touch-icon.png",
+        "public/brand/social-en.png": "social/computer-mcp.png",
+        "public/brand/social-zh-CN.png": "social/computer-mcp-zh-CN.png",
+        "public/brand/icons/plugin-codex.svg": "icons/plugin-codex.svg",
+        "public/brand/icons/plugin-computer-use.svg": "icons/plugin-computer-use.svg",
+        "public/brand/icons/plugin-claude.svg": "icons/plugin-claude.svg",
+        "public/brand/icons/plugin-cursor.svg": "icons/plugin-cursor.svg",
+        "public/brand/icons/plugin-swift-format.svg": "icons/plugin-swift-format.svg",
+        "public/brand/icons/plugin-trae.svg": "icons/plugin-trae.svg",
+        "public/brand/icons/apple-cli.svg": "icons/apple-cli.svg"
+      },
+      "entries": {
+        "index.html": ["brand/social-en.png", "brand/favicon.svg", "@headline.en", "@headline.zh-CN"]
+      }
+    },
+    "@member": {
+      "lock": "Documentation/Brand/brand.lock.json",
+      "files": {
+        "Documentation/Brand/header-light.png": "headers/{repository}-light.png",
+        "Documentation/Brand/header-dark.png": "headers/{repository}-dark.png",
+        "Documentation/Brand/social.png": "social/{repository}.png",
+        "Documentation/Brand/icon.svg": "icons/{repository}.svg",
+        "Documentation/Brand/icon.png": "icons/{repository}.png"
+      },
+      "entries": {
+        "README.md": ["@title", "Documentation/Brand/header-light.png", "Documentation/Brand/header-dark.png"]
+      }
+    }
+  },
+  "sizes": {
+    "header": [1280, 320, 2],
+    "social": [1280, 640, 1],
+    "icon": [512, 512],
+    "app_icon": [1024, 1024],
+    "avatar": [1024, 1024],
+    "favicon": [32, 32],
+    "apple_touch_icon": [180, 180]
+  }
+}

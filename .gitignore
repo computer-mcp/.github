@@ -1,3 +1,5 @@
 .agent/
 __pycache__/
 .DS_Store
+Brand/.cache/
+Brand/node_modules/

@@ -1,0 +1,19 @@
+{
+  "schema_version": 2,
+  "authority": "https://github.com/computer-mcp/.github",
+  "revision": "fe16fb823ef36fd1853ec1844b02d360ac203a1323054b79232fc7e1057c3563",
+  "consumer": ".github",
+  "files": {
+    "profile/brand/header-light.png": "821b9c5a2ad1a821acef6ffd9d035d3d856b17314f0bd9adb863ce77b52060f2",
+    "profile/brand/header-dark.png": "b30d267454684a4c800821168df9363760a8f417cc757b5dd9ad70585dab54c8",
+    "profile/brand/avatar.png": "77ca83dfdb62ee78aebb8f4d94f0dfea7037ebde10285e1dbcec7dfc4867723e"
+  },
+  "entries": {
+    "profile/README.md": [
+      "Computer MCP",
+      "brand/header-light.png",
+      "brand/header-dark.png",
+      "Wherever you chat, your computer is there."
+    ]
+  }
+}
