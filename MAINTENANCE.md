@@ -35,6 +35,18 @@ Versions follow [Semantic Versioning 2.0.0](https://semver.org/):
 - Per-version process files are not committed. Release notes and reports are
   rendered from the changelog and version-independent templates.
 
+## Licenses
+
+- The App, the plugins and the website use the Functional Source License 1.1
+  with the Apache 2.0 future license (FSL-1.1-ALv2). Their `LICENSE` files are
+  identical, and each release becomes available under Apache-2.0 two years
+  after publication.
+- Apple CLI and the Homebrew tap use Apache-2.0. The MCP Swift SDK fork keeps
+  its upstream license. This repository has no license of its own.
+- A license change applies from the next release; published releases keep the
+  license they shipped with. Bundled third-party material keeps its own
+  license, listed in the repository's `THIRD_PARTY_NOTICES.md`.
+
 ## Plugins
 
 Each plugin declares `minimum_host` in `computer-mcp-plugin.toml`. After a
@@ -64,6 +76,6 @@ no version of its own:
   differs.
 - A repository's own `.github/ISSUE_TEMPLATE/` replaces these templates
   entirely, so repository-specific fields belong in the shared templates.
-- Every repository carries its own `LICENSE`, `.github/CODEOWNERS`,
-  `.github/dependabot.yml` and workflows; these are not inherited.
+- `LICENSE`, `.github/CODEOWNERS`, `.github/dependabot.yml` and workflows are
+  not inherited; each repository carries its own.
 - The MCP Swift SDK fork keeps its upstream files.
