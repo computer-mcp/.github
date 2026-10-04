@@ -1,0 +1,14 @@
+{
+  "name": "computer-mcp-brand",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "render": "node render.mjs",
+    "lint": "design.md lint ../DESIGN.md"
+  },
+  "dependencies": {
+    "@google/design.md": "0.4.0",
+    "playwright": "1.63.0",
+    "yaml": "2.9.1"
+  }
+}
