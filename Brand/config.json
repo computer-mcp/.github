@@ -105,7 +105,6 @@
   ],
   "consumers": {
     ".github": {
-      "lock": "profile/brand/brand.lock.json",
       "files": {
         "profile/brand/header-light.png": "headers/computer-mcp-light.png",
         "profile/brand/header-dark.png": "headers/computer-mcp-dark.png",
@@ -116,15 +115,13 @@
       }
     },
     "computer-mcp": {
-      "lock": "Documentation/Brand/brand.lock.json",
       "files": {
         "Documentation/Brand/header-light.png": "headers/computer-mcp-light.png",
         "Documentation/Brand/header-dark.png": "headers/computer-mcp-dark.png",
         "Documentation/Brand/header-zh-CN-light.png": "headers/computer-mcp-zh-CN-light.png",
         "Documentation/Brand/header-zh-CN-dark.png": "headers/computer-mcp-zh-CN-dark.png",
-        "Documentation/Brand/social.png": "social/computer-mcp.png",
-        "Documentation/Brand/social-zh-CN.png": "social/computer-mcp-zh-CN.png",
-        "Documentation/Brand/icon.png": "app/app-icon.png",
+        ".github/brand/social.png": "social/computer-mcp.png",
+        ".github/brand/social-zh-CN.png": "social/computer-mcp-zh-CN.png",
         "Resources/ComputerMCPApp/AppIcon.icon/": "app/AppIcon.icon/"
       },
       "entries": {
@@ -133,7 +130,6 @@
       }
     },
     "computer-mcp.github.io": {
-      "lock": "public/brand/brand.lock.json",
       "files": {
         "public/brand/icon.svg": "app/app-icon.svg",
         "public/brand/favicon.svg": "web/favicon.svg",
@@ -154,13 +150,10 @@
       }
     },
     "@member": {
-      "lock": "Documentation/Brand/brand.lock.json",
       "files": {
         "Documentation/Brand/header-light.png": "headers/{repository}-light.png",
         "Documentation/Brand/header-dark.png": "headers/{repository}-dark.png",
-        "Documentation/Brand/social.png": "social/{repository}.png",
-        "Documentation/Brand/icon.svg": "icons/{repository}.svg",
-        "Documentation/Brand/icon.png": "icons/{repository}.png"
+        ".github/brand/social.png": "social/{repository}.png"
       },
       "entries": {
         "README.md": ["@title", "Documentation/Brand/header-light.png", "Documentation/Brand/header-dark.png"]

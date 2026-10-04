@@ -19,6 +19,7 @@ BRAND = Path(__file__).resolve().parent
 ROOT = BRAND.parent
 EXPORTS = BRAND / "Exports"
 VERIFIER = ROOT / ".github/workflows/brand-check.yml"
+LOCK = ".github/brand/brand.lock.json"
 CONFIG = json.loads((BRAND / "config.json").read_text())
 
 
@@ -88,10 +89,10 @@ def inside(root, name):
     return path
 
 
-def verify(root, lock):
+def verify(root):
     workflow = VERIFIER.read_text()
     script = workflow.split("<<'PY'\n", 1)[1].split("\n          PY\n", 1)[0]
-    return subprocess.run([sys.executable, "-", lock], input=textwrap.dedent(script), text=True, cwd=root).returncode
+    return subprocess.run([sys.executable, "-"], input=textwrap.dedent(script), text=True, cwd=root).returncode
 
 
 def sync(checkout, repository):
@@ -100,7 +101,7 @@ def sync(checkout, repository):
     root = Path(checkout).resolve()
     repository = repository or repository_of(root)
     spec, entries = resolve(repository)
-    lock_path = inside(root, spec["lock"])
+    lock_path = inside(root, LOCK)
     previous = json.loads(lock_path.read_text())["files"] if lock_path.exists() else {}
     files = {}
     for target, source in deliveries(spec):
@@ -121,7 +122,7 @@ def sync(checkout, repository):
     lock_path.parent.mkdir(parents=True, exist_ok=True)
     lock_path.write_text(json.dumps(lock, indent=2, ensure_ascii=False) + "\n")
     print(f"Delivered {len(files)} brand files to {repository}", flush=True)
-    return verify(root, spec["lock"])
+    return verify(root)
 
 
 def main():

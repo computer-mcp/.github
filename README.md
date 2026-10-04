@@ -30,13 +30,13 @@ Text rendered into images (`Brand/config.json` `copy` and `members`) must match 
 
 `python3 Brand/brand.py sync <checkout>` copies the files that repository uses,
 removes files its previous lock delivered and no longer needs, rewrites its
-`brand.lock.json`, and verifies the lock. Commit the result through a pull
-request in that repository. Each repository's CI calls the shared check:
+`.github/brand/brand.lock.json`, and verifies the lock. Images that ship with a
+repository's packaged documentation live in `Documentation/Brand/`; social
+previews stay in `.github/brand/`. Commit the result through a pull request in
+that repository. Each repository's CI calls the shared check:
 
 ```yaml
 jobs:
   brand:
     uses: computer-mcp/.github/.github/workflows/brand-check.yml@<commit>
-    with:
-      lock: Documentation/Brand/brand.lock.json
 ```
