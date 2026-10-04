@@ -21,5 +21,3 @@ jobs:
         run: python3 Brand/brand.py check
   profile:
     uses: ./.github/workflows/brand-check.yml
-    with:
-      lock: profile/brand/brand.lock.json

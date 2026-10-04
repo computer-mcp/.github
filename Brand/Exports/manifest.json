@@ -2,7 +2,7 @@
   "schema_version": 1,
   "inputs": {
     "DESIGN.md": "baf0318de7b9fb5e9b24d9201e806ec9545dc526e3c79197dcfa0e83f0ddf220",
-    "Brand/config.json": "06f0dc75d3f2e890180271293751452782c1504241a5ec1ff028f22b727f0bd0",
+    "Brand/config.json": "e116853724002cc2e1dbfbe4e092cf26d4922e11b51911408307fb47379443e5",
     "Brand/icons.mjs": "1c3676dcdc5fdcaf81daa096dc61a536be2f02704748d3c02bda918fb26cb97d",
     "Brand/render.mjs": "a8927cab0db45f9326f353fba40ea3bcbb326b6a0508a53b7e3bafbbe7d14dc4",
     "Brand/package.json": "c5d5e11a37021178ac682ce2fd64a2f55dc4dfe4f333b64f0079cb1ef54686cd",
