@@ -16,7 +16,9 @@ only what they share.
   that has no bypass: it blocks deletion and force pushes, requires signed
   commits, and accepts only squash-merged pull requests whose required checks
   pass. Automation proposes its changes as pull requests that merge
-  automatically once those checks pass.
+  automatically once those checks pass. It has GitHub create each proposal
+  commit through the API with the workflow token, which GitHub signs, because
+  a commit made with `git commit` in a workflow is unsigned and cannot merge.
 
 ## Versions
 
