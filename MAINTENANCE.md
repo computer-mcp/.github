@@ -12,6 +12,11 @@ only what they share.
 - Changes land through pull requests with passing checks and are squash merged.
   Merged branches are deleted automatically.
 - Commits and tags are signed.
+- Each public repository enforces these rules with a `default branch` ruleset
+  that has no bypass: it blocks deletion and force pushes, requires signed
+  commits, and accepts only squash-merged pull requests whose required checks
+  pass. Automation proposes its changes as pull requests that merge
+  automatically once those checks pass.
 
 ## Versions
 
