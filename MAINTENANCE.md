@@ -60,7 +60,8 @@ plugin catalog.
   `Documentation/Decisions/` accepted rationale.
 - Scripts live in `Scripts/`. Executable scripts use kebab-case names with an
   extension; imported Python modules use snake_case.
-- `AGENTS.md` routes agents through the repository's own documents.
+- `AGENTS.md` carries the shared first-principles and canonical-artifact
+  sections, then routes agents through the repository's own documents.
   `.agent/` stays local and untracked.
 
 ## Community files
