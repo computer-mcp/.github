@@ -16,7 +16,13 @@ only what they share.
   that has no bypass: it blocks deletion and force pushes, requires signed
   commits, and accepts only squash-merged pull requests whose required checks
   pass. Automation proposes its changes as pull requests that merge
-  automatically once those checks pass.
+  automatically once those checks pass. It acts through the Computer MCP
+  Automation GitHub App, installed only where automation proposes changes: the
+  App's installation token has GitHub create each proposal commit through the
+  API, which GitHub signs, and opens the pull request, whose checks then run on
+  their own. A commit made with `git commit` in a workflow is unsigned, and a
+  pull request opened with the workflow token waits for manual approval before
+  its checks run.
 
 ## Versions
 
