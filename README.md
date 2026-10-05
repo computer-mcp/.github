@@ -46,3 +46,13 @@ jobs:
   brand:
     uses: computer-mcp/.github/.github/workflows/brand-check.yml@<commit>
 ```
+
+## Social previews and avatar
+
+GitHub has no API for a repository's social preview or the organization
+avatar. After a repository's brand pull request merges, upload its
+`.github/brand/social.png` in the repository's settings under Social preview.
+A public repository's preview is current when the image at its GraphQL
+`openGraphImageUrl` has the same SHA-256 as that file. Upload
+`profile/brand/avatar.png` as the organization avatar in the organization's
+settings.
