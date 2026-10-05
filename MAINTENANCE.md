@@ -17,7 +17,7 @@ only what they share.
   commits, and accepts only squash-merged pull requests whose required checks
   pass. Automation proposes its changes as pull requests that merge
   automatically once those checks pass. It acts through the Computer MCP
-  Automation GitHub App, installed only where automation proposes changes: the
+  Updater GitHub App, installed only where automation proposes changes: the
   App's installation token has GitHub create each proposal commit through the
   API, which GitHub signs, and opens the pull request, whose checks then run on
   their own. A commit made with `git commit` in a workflow is unsigned, and a
@@ -62,7 +62,33 @@ Versions follow [Semantic Versioning 2.0.0](https://semver.org/):
 
 Each plugin declares `minimum_host` in `computer-mcp-plugin.toml`. After a
 release, its `notify-catalog.yml` workflow asks the website to refresh the
-plugin catalog.
+plugin catalog through the Computer MCP Release Notifier GitHub App.
+
+## GitHub settings
+
+`python3 Scripts/check-settings.py` compares the organization's live settings
+with this section and the rulesets above, and lists every difference. Run it
+with an organization owner's `gh` login after changing a repository setting,
+an App or an Actions credential, and update this section in the same change.
+
+- Every repository allows only squash merges and deletes merged branches. Its
+  workflows, like the organization default, get a read-only token that cannot
+  approve pull requests.
+- Each public repository's `default branch` ruleset requires at least one
+  check; each repository's CI owns which.
+- Only these GitHub Apps are installed. Each has exactly the listed
+  permissions, is installed only on the listed repositories and subscribes to
+  no events:
+
+| App | Permissions | Installed on | Credentials | Stored in |
+| --- | --- | --- | --- | --- |
+| `computer-mcp-release-notifier` | `actions: write` | `computer-mcp.github.io` | `CATALOG_APP` | `plugin-claude`, `plugin-codex`, `plugin-computer-use`, `plugin-cursor`, `plugin-swift-format` |
+| `computer-mcp-updater` | `contents: write`, `pull_requests: write` | `computer-mcp.github.io`, `homebrew-tap` | `AUTOMATION_APP` | `computer-mcp.github.io`, `homebrew-tap` |
+
+- A repository that uses an App keeps the App's client ID in the
+  `<credentials>_CLIENT_ID` variable and its private key in the
+  `<credentials>_PRIVATE_KEY` secret. No repository and not the organization
+  holds any other Actions secret or variable.
 
 ## Repository layout
 
