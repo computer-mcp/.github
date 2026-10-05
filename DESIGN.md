@@ -38,71 +38,69 @@ colors:
   icon-glyph: "#16181D"
 typography:
   headline-display:
-    fontFamily: Bricolage Grotesque
-    fontSize: 88px
-    fontWeight: 700
-    lineHeight: 0.98
-    letterSpacing: -0.035em
-    fontVariation: "'opsz' 96, 'wdth' 88"
+    fontFamily: Inter
+    fontSize: 80px
+    fontWeight: 600
+    lineHeight: 1.05
+    letterSpacing: -0.015em
   headline-lg:
-    fontFamily: Bricolage Grotesque
+    fontFamily: Inter
     fontSize: 56px
-    fontWeight: 700
-    lineHeight: 1.02
-    letterSpacing: -0.03em
-    fontVariation: "'opsz' 72, 'wdth' 90"
+    fontWeight: 600
+    lineHeight: 1.07
+    letterSpacing: -0.005em
   headline-md:
-    fontFamily: Bricolage Grotesque
+    fontFamily: Inter
     fontSize: 32px
-    fontWeight: 650
-    lineHeight: 1.1
-    letterSpacing: -0.02em
+    fontWeight: 600
+    lineHeight: 1.125
+    letterSpacing: 0.004em
   headline-sm:
-    fontFamily: Bricolage Grotesque
+    fontFamily: Inter
     fontSize: 22px
-    fontWeight: 650
+    fontWeight: 600
     lineHeight: 1.2
-    letterSpacing: -0.01em
+    letterSpacing: 0.004em
   headline-zh:
     fontFamily: Noto Sans SC
-    fontSize: 68px
-    fontWeight: 800
-    lineHeight: 1.12
-    letterSpacing: -0.01em
+    fontSize: 64px
+    fontWeight: 600
+    lineHeight: 1.14
+    letterSpacing: 0em
   body-lg:
-    fontFamily: Bricolage Grotesque
+    fontFamily: Inter
     fontSize: 18px
     fontWeight: 400
-    lineHeight: 1.6
-    fontVariation: "'opsz' 18"
+    lineHeight: 1.5
+    letterSpacing: -0.011em
   body-md:
-    fontFamily: Bricolage Grotesque
-    fontSize: 16px
+    fontFamily: Inter
+    fontSize: 17px
     fontWeight: 400
-    lineHeight: 1.6
-    fontVariation: "'opsz' 14"
+    lineHeight: 1.53
+    letterSpacing: -0.011em
   body-sm:
-    fontFamily: Bricolage Grotesque
+    fontFamily: Inter
     fontSize: 14px
     fontWeight: 400
-    lineHeight: 1.55
-    fontVariation: "'opsz' 12"
+    lineHeight: 1.5
+    letterSpacing: -0.006em
   label-lg:
-    fontFamily: JetBrains Mono
-    fontSize: 14px
-    fontWeight: 600
+    fontFamily: Inter
+    fontSize: 15px
+    fontWeight: 500
     lineHeight: 1.2
-    letterSpacing: 0.02em
+    letterSpacing: -0.01em
   label-md:
-    fontFamily: JetBrains Mono
-    fontSize: 12px
+    fontFamily: Inter
+    fontSize: 13px
     fontWeight: 600
     lineHeight: 1.2
-    letterSpacing: 0.06em
+    letterSpacing: 0em
   code-md:
     fontFamily: JetBrains Mono
     fontSize: 13px
-    fontWeight: 450
+    fontWeight: 400
     lineHeight: 1.6
 rounded:
   none: 0px
@@ -304,7 +302,7 @@ card, and one **secure link** runs from it into the stack; calls travel along th
 packets. Everything that belongs to the active path — the request, the link and the capability
 plane it reaches — is vermilion.
 
-The look is warm, tactile and exact: paper and ink, crisp offset shadows, monospace labels. It
+The look is warm, tactile and exact: paper and ink, crisp offset shadows, plain system type. It
 should feel like a well-made tool that runs on your own machine, not a cloud service. Audience:
 developers and people who want ChatGPT to code and operate their computer for them. Tone: direct,
 concrete, unhurried. Density: generous on marketing surfaces, compact in reference material.
@@ -336,13 +334,16 @@ WCAG AA in both modes.
 
 ## Typography
 
-**Bricolage Grotesque** (OFL) carries display and body text; its optical-size axis tightens
-headlines (opsz 96, width 88) and opens body text (opsz 14). **JetBrains Mono** (OFL) carries labels,
-packets, commands and code. Chinese text uses **Noto Sans SC** (OFL), heavy for headlines.
+Interface text uses the platform's system typeface, the way Apple's own pages do: **SF Pro** for
+Latin text, **PingFang SC** for Chinese and **SF Mono** for code on Apple devices, through the system
+font stack on the web. Headlines are semibold with slightly tight tracking; labels, buttons and
+navigation are set in the same sans in sentence case. Monospace is reserved for real code: tool
+names, paths, commands and output.
 
-Text rendered into images — headers, social cards and icons — uses only these bundled fonts, so every
-platform shows the same result. Live web text may fall back to system fonts only after the bundled
-web fonts.
+Apple's font license does not cover brand artwork, so text rendered into images — headers, social
+cards and icons — uses bundled open fonts that match the system faces: **Inter** (OFL) for Latin,
+**Noto Sans SC** (OFL) for Chinese and **JetBrains Mono** (OFL) for code. The tokens above carry these
+artwork faces; web text maps them to the system stack.
 
 ## Layout
 
@@ -396,7 +397,7 @@ radius; the body is the macOS rounded rectangle on the 824px grid.
 
 ## Components
 
-- **Primary button:** vermilion fill, ink JetBrains Mono label, 12px radius.
+- **Primary button:** vermilion fill, ink label in the interface sans, 12px radius.
 - **Secondary button:** raised surface with a 1px line border.
 - **Chat card:** raised surface, 20px radius, a title row naming the chat, and the request as a
   vermilion bubble with ink text.
@@ -407,7 +408,7 @@ radius; the body is the macOS rounded rectangle on the 824px grid.
 - **Link and packets:** a link-rail band with a 6px vermilion line; packets are raised pills naming
   the tool, such as `file.write`.
 - **Status:** green for success, red for removals, caution badge for actions awaiting confirmation.
-- **Chip and code block:** paper chip with a mono label; ink code block with paper text and a
+- **Chip and code block:** paper chip with a sans label; ink code block with paper text and a
   vermilion prompt.
 
 ## Do's and Don'ts

@@ -78,10 +78,10 @@ ${css}
 
 // Planes offset up and to the right; front is the top-right plane.
 function stack(p, { x, y, w, h, off }, labels = {}, front = '') {
-  const label = `display:flex;align-items:flex-end;padding:0 18px 12px;${typo('label-md', { letterSpacing: '0.03em' })};white-space:nowrap`;
+  const label = (role) => `display:flex;align-items:flex-end;padding:0 18px 12px;${typo(role, { fontWeight: 600, lineHeight: 1.2 })};white-space:nowrap`;
   return `
-    <div class="pl" style="left:${x - 2 * off}px;top:${y + 2 * off}px;width:${w}px;height:${h}px;background:${c['plane-back']};color:${c['on-plane-back']};${label}">${labels.workspace || ''}</div>
-    <div class="pl" style="left:${x - off}px;top:${y + off}px;width:${w}px;height:${h}px;background:${c.tertiary};color:${c['on-accent']};box-shadow:${p.shadow};${label}">${labels.capabilities || ''}</div>
+    <div class="pl" style="left:${x - 2 * off}px;top:${y + 2 * off}px;width:${w}px;height:${h}px;background:${c['plane-back']};color:${c['on-plane-back']};${label('code-md')}">${labels.workspace || ''}</div>
+    <div class="pl" style="left:${x - off}px;top:${y + off}px;width:${w}px;height:${h}px;background:${c.tertiary};color:${c['on-accent']};box-shadow:${p.shadow};${label('label-md')}">${labels.capabilities || ''}</div>
     <div class="pl" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px;background:${p.raised};border:1px solid ${p.line};box-shadow:${p.shadow};color:${p.fg}">${front}</div>`;
 }
 
@@ -104,7 +104,7 @@ function header(faces, member, mode, locale = 'en') {
     body{background:${p.bg};color:${p.fg}}
     .id{position:absolute;left:64px;top:0;height:320px;display:flex;align-items:center;gap:36px;z-index:2}
     .id img{width:184px;height:184px}
-    .eyebrow{${typo('label-md')};color:${p.accent};text-transform:uppercase;margin-bottom:12px}
+    .eyebrow{${typo('label-md')};color:${p.accent};margin-bottom:12px}
     h1{${typo('headline-lg')}}
     .line{${typo('body-lg', { fontSize: '21px' })};color:${p.muted};margin-top:12px;max-width:620px}
   `, `${link(p, [[1120, -20], [1120, 120]], 26)}
@@ -134,7 +134,7 @@ function appSocial(faces, member, locale) {
     .card{position:absolute;z-index:2;background:${p.raised};border:1px solid ${p.line};border-radius:${r.lg};padding:16px 18px;box-shadow:${p.shadow}}
     .card .t{${typo('label-md')};color:${p.muted};margin-bottom:10px}
     .ask{${typo('body-md', { fontSize: '15px' })};background:${c.tertiary};color:${c['on-accent']};border-radius:16px 16px 6px 16px;padding:9px 13px;margin-left:auto;width:fit-content}
-    .pk{position:absolute;z-index:3;${typo('label-md')};background:${p.raised};color:${p.fg};border:1px solid ${p.line};border-radius:999px;padding:6px 11px;box-shadow:0 6px 14px -6px rgba(10,16,30,.25)}
+    .pk{position:absolute;z-index:3;${typo('code-md', { fontWeight: 600, lineHeight: 1.2 })};background:${p.raised};color:${p.fg};border:1px solid ${p.line};border-radius:999px;padding:6px 11px;box-shadow:0 6px 14px -6px rgba(10,16,30,.25)}
     .pk i{font-style:normal;color:${p.accent}}
   `, `${link(p, [[card.x + card.w - 20, ly], [lx, ly], [lx, F.y + 30]], 34)}
     <div class="card" style="left:${card.x}px;top:${card.y}px;width:${card.w}px"><div class="t">ChatGPT</div><div class="ask">${esc(config.copy.request[locale])}</div></div>
@@ -155,7 +155,7 @@ function memberSocial(faces, member) {
     body{background:${p.bg};color:${p.fg}}
     .top{position:absolute;left:80px;top:72px;display:flex;align-items:center;gap:24px;z-index:2}
     .top img{width:112px;height:112px}
-    .eyebrow{${typo('label-md')};color:${p.accent};text-transform:uppercase;margin-bottom:8px}
+    .eyebrow{${typo('label-md')};color:${p.accent};margin-bottom:8px}
     .top b{${typo('headline-md', { fontSize: '38px' })}}
     h1{position:absolute;left:80px;top:250px;width:640px;${typo('headline-display', { fontSize: '62px' })};z-index:2}
     .url{position:absolute;left:80px;bottom:76px;${typo('label-lg')};color:${p.muted}}

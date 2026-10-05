@@ -3,10 +3,10 @@
   "authority": "https://github.com/computer-mcp/.github",
   "fonts": [
     {
-      "family": "Bricolage Grotesque",
-      "weight": "200 800",
-      "url": "https://raw.githubusercontent.com/google/fonts/9710da1eacb3be272583c3224dcb70f9da6eadbb/ofl/bricolagegrotesque/BricolageGrotesque%5Bopsz%2Cwdth%2Cwght%5D.ttf",
-      "sha256": "413e7357809ddd12fd80a96a8a396de0e401638d4acd3cb3e37532f0472ac682"
+      "family": "Inter",
+      "weight": "100 900",
+      "url": "https://raw.githubusercontent.com/google/fonts/9710da1eacb3be272583c3224dcb70f9da6eadbb/ofl/inter/Inter%5Bopsz%2Cwght%5D.ttf",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
     },
     {
       "family": "JetBrains Mono",
