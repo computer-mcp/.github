@@ -8,6 +8,8 @@ conventions every Computer MCP repository shares.
   (`CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `GOVERNANCE.md`, `SECURITY.md`,
   `SUPPORT.md`, `.github/ISSUE_TEMPLATE/` and the pull request template) apply
   to every repository without its own version.
+- `Scripts/check-settings.py` compares the organization's live GitHub settings,
+  Apps and Actions credentials with `MAINTENANCE.md`.
 - `DESIGN.md` is the design system: tokens, components, the icon family and
   composition rules.
 - `Brand/` holds the renderer, its configuration and the rendered `Exports/`

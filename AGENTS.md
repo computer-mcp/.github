@@ -70,6 +70,8 @@ Use this check:
 
 - For the public organization entry point, edit `profile/README.md`.
 - For conventions shared by every repository, read `MAINTENANCE.md`.
+- For repository settings, GitHub Apps and Actions credentials, change
+  `MAINTENANCE.md` with the setting, then run `python3 Scripts/check-settings.py`.
 - For visual identity, read `DESIGN.md`; the renderer, its configuration and
   the rendered exports live in `Brand/`, and `README.md` describes rendering
   and delivery.
