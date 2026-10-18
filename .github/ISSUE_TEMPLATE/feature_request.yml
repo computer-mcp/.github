@@ -1,0 +1,35 @@
+name: Feature request
+description: Propose a focused improvement to a Computer MCP component.
+labels: [enhancement]
+body:
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - Computer MCP App or CLI
+        - Plugin
+        - Apple CLI
+        - Homebrew tap
+        - Website or plugin catalog
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What you are trying to do and what gets in the way.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Execution and privacy impact
+      description: What the change would let a client run, read or change on the computer.

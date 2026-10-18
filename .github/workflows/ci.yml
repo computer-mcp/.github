@@ -1,0 +1,23 @@
+name: CI
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  design:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: npm ci --prefix Brand --no-fund --no-audit
+      - name: Lint DESIGN.md
+        run: npm --prefix Brand run lint
+      - name: Check brand exports
+        run: python3 Brand/brand.py check
+  profile:
+    uses: ./.github/workflows/brand-check.yml
