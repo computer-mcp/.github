@@ -1,19 +1,25 @@
 // Render every Computer MCP brand asset from DESIGN.md and config.json into Exports/.
-// Usage: node Brand/render.mjs   (after `npm ci` and `npx playwright install --only-shell chromium`)
+// Usage: APP_ICONS_SCRIPT=/path/to/app_icons.py node Brand/render.mjs
 
+import { execFileSync } from 'node:child_process';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
 import YAML from 'yaml';
 import { chromium } from 'playwright';
-import { appIcon, fullBleedIcon, glyph, iconComposer } from './icons.mjs';
+import { componentIcon, glyph } from './icons.mjs';
 
 const BRAND = path.dirname(new URL(import.meta.url).pathname);
 const ROOT = path.dirname(BRAND);
 const EXPORTS = path.join(BRAND, 'Exports');
-const CACHE = path.join(BRAND, '.cache', 'fonts');
-const INPUTS = ['DESIGN.md', 'Brand/config.json', 'Brand/icons.mjs', 'Brand/render.mjs', 'Brand/package.json', 'Brand/package-lock.json'];
+const CACHE = path.join(BRAND, '.cache');
+const INPUTS = [
+  'DESIGN.md', 'Brand/config.json', 'Brand/icons.mjs', 'Brand/render.mjs', 'Brand/package.json', 'Brand/package-lock.json',
+  ...fs.readdirSync(path.join(BRAND, 'app-icon', 'layers')).filter((name) => name.endsWith('.svg')).sort()
+    .map((name) => `Brand/app-icon/layers/${name}`),
+];
+const APP_ICONS_SCRIPT = process.env.APP_ICONS_SCRIPT;
+if (!APP_ICONS_SCRIPT?.trim()) throw new Error('Set APP_ICONS_SCRIPT to the apple-app-icon-design generator script (app_icons.py). Icon Composer from Xcode is required; IC_TOOL can select its ictool.');
 
 const sha256 = (data) => crypto.createHash('sha256').update(data).digest('hex');
 const config = JSON.parse(fs.readFileSync(path.join(BRAND, 'config.json'), 'utf8'));
@@ -21,10 +27,11 @@ const design = YAML.parse(fs.readFileSync(path.join(ROOT, 'DESIGN.md'), 'utf8').
 const c = design.colors, t = design.typography, r = design.rounded;
 
 async function fonts() {
-  fs.mkdirSync(CACHE, { recursive: true });
+  const directory = path.join(CACHE, 'fonts');
+  fs.mkdirSync(directory, { recursive: true });
   const faces = [];
   for (const font of config.fonts) {
-    const file = path.join(CACHE, `${font.sha256}.ttf`);
+    const file = path.join(directory, `${font.sha256}.ttf`);
     if (!fs.existsSync(file)) {
       const response = await fetch(font.url);
       if (!response.ok) throw new Error(`Font download failed: ${font.family}`);
@@ -48,7 +55,7 @@ function typo(name, extra = {}) {
   ].filter(Boolean).join(';');
 }
 
-const dataUri = (svg) => `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
+const dataUri = (data, type = 'image/svg+xml') => `data:${type};base64,${Buffer.from(data).toString('base64')}`;
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
 
 function palette(mode) {
@@ -61,8 +68,11 @@ function palette(mode) {
     muted: dark ? c['on-surface-muted-dark'] : c['on-surface-muted'],
     line: dark ? c['line-dark'] : c.line,
     accent: dark ? c['accent-text-dark'] : c['accent-text'],
+    signal: dark ? c['signal-dark'] : c.signal,
     rail: dark ? c['link-rail-dark'] : c['link-rail'],
-    ok: dark ? c['success-dark'] : c.success,
+    caseFill: dark ? c['computer-case-dark'] : c['computer-case'],
+    caseEdge: dark ? c['computer-edge-dark'] : c['computer-edge'],
+    chin: dark ? c['computer-chin-dark'] : c['computer-chin'],
     shadow: dark ? '0 24px 48px -16px rgba(0,0,0,.6)' : '0 1px 0 rgba(0,0,0,.05),0 22px 40px -14px rgba(10,16,30,.30)',
   };
 }
@@ -72,24 +82,36 @@ ${faces}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{width:${w}px;height:${h}px;overflow:hidden}
 body{position:relative;-webkit-font-smoothing:antialiased;text-rendering:geometricPrecision}
-.pl{position:absolute;border-radius:${r.lg}}
 ${css}
 </style></head><body>${body}</body></html>`;
 
-// Planes offset up and to the right; front is the top-right plane.
-function stack(p, { x, y, w, h, off }, labels = {}, front = '') {
-  const label = (role) => `display:flex;align-items:flex-end;padding:0 18px 12px;${typo(role, { fontWeight: 600, lineHeight: 1.2 })};white-space:nowrap`;
-  return `
-    <div class="pl" style="left:${x - 2 * off}px;top:${y + 2 * off}px;width:${w}px;height:${h}px;background:${c['plane-back']};color:${c['on-plane-back']};${label('code-md')}">${labels.workspace || ''}</div>
-    <div class="pl" style="left:${x - off}px;top:${y + off}px;width:${w}px;height:${h}px;background:${c.tertiary};color:${c['on-accent']};box-shadow:${p.shadow};${label('label-md')}">${labels.capabilities || ''}</div>
-    <div class="pl" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px;background:${p.raised};border:1px solid ${p.line};box-shadow:${p.shadow};color:${p.fg}">${front}</div>`;
+// The App icon's computer, drawn flat from its own layers: chin, amber screen, ivory case.
+// (cx, top) is the top centre of the case; h is the height of case and chin together.
+const LAYER = (name) => {
+  const svg = fs.readFileSync(path.join(BRAND, 'app-icon', 'layers', `${name}.svg`), 'utf8');
+  return svg.slice(svg.indexOf('>') + 1, svg.lastIndexOf('</svg>')).replace(/fill="#[0-9A-Fa-f]{6}"/g, '');
+};
+// Bounds in layer coordinates, copied from Brand/app-icon/layers; change them with the layers.
+const CASE = { x0: 240, y0: 196, x1: 784, y1: 782 };   // case and chin
+const SCREEN = { x: 300, y: 256, w: 424, h: 312 };     // the case's screen opening
+
+function computer(p, { cx, top, h }, screen = '') {
+  const s = h / (CASE.y1 - CASE.y0), x = cx - ((CASE.x0 + CASE.x1) / 2) * s, y = top - CASE.y0 * s;
+  const inset = `left:${x + SCREEN.x * s}px;top:${y + SCREEN.y * s}px;width:${SCREEN.w * s}px;height:${SCREEN.h * s}px`;
+  return `<svg style="position:absolute;left:0;top:0;overflow:visible;filter:drop-shadow(${p.dark ? '0 22px 30px rgba(0,0,0,.55)' : '0 18px 26px rgba(10,16,30,.22)'})" width="1" height="1">
+      <g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${s.toFixed(4)})">
+        <g fill="${p.chin}">${LAYER('crt-base')}</g>
+        <g fill="${p.signal}">${LAYER('crt-light')}</g>
+        <g fill="${p.caseFill}" stroke="${p.caseEdge}" stroke-width="${(1.5 / s).toFixed(2)}">${LAYER('crt-body')}</g>
+      </g></svg>
+    <div style="position:absolute;${inset};display:flex;align-items:center;justify-content:center;color:${c['on-signal']}">${screen}</div>`;
 }
 
 function link(p, points, width = 30) {
   const d = 'M' + points.map(([x, y]) => `${x} ${y}`).join(' L');
   return `<svg width="100%" height="100%" style="position:absolute;inset:0">
     <path d="${d}" fill="none" stroke="${p.rail}" stroke-width="${width}" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="${d}" fill="none" stroke="${c.tertiary}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    <path d="${d}" fill="none" stroke="${p.signal}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 }
 
 const check = (color) => `<svg width="12" height="12" viewBox="0 0 12 12" style="vertical-align:-1px"><path d="M2 6.5 L5 9.5 L10.5 2.5" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
@@ -98,31 +120,34 @@ const glyphSvg = (name, color, size) => `<svg width="${size}" height="${size}" v
 
 function header(faces, member, mode, locale = 'en') {
   const p = palette(mode);
-  const icon = dataUri(appIcon(c, member.glyph));
-  const front = `<div style="position:absolute;left:0;top:0;width:270px;height:100%;display:flex;align-items:center;justify-content:center">${glyphSvg(member.glyph, p.fg, 104)}</div>`;
+  const isApp = member.repository === 'computer-mcp';
+  const icon = isApp ? appIconPng : dataUri(componentIcon(c, member.glyph));
+  const screen = isApp ? '' : glyphSvg(member.glyph, c['on-signal'], 84);
+  const ask = esc(config.copy.request[locale] ?? config.copy.request.en);
   return page(faces, 1280, 320, `
     body{background:${p.bg};color:${p.fg}}
     .id{position:absolute;left:64px;top:0;height:320px;display:flex;align-items:center;gap:36px;z-index:2}
     .id img{width:184px;height:184px}
     .eyebrow{${typo('label-md')};color:${p.accent};margin-bottom:12px}
     h1{${typo('headline-lg')}}
-    .line{${typo('body-lg', { fontSize: '21px' })};color:${p.muted};margin-top:12px;max-width:620px}
-  `, `${link(p, [[1120, -20], [1120, 120]], 26)}
-    ${stack(p, { x: 1010, y: 96, w: 300, h: 196, off: 34 }, {}, front)}
+    .line{${typo('body-lg', { fontSize: '21px' })};color:${p.muted};margin-top:12px;max-width:560px}
+    .req{position:absolute;left:688px;top:34px;width:290px;z-index:2;background:${p.raised};border:1px solid ${p.line};border-radius:${r.lg};padding:12px;box-shadow:${p.shadow}}
+    .req div{${typo('body-md', { fontSize: '15px', lineHeight: 1.35 })};word-break:keep-all;background:${p.signal};color:${c['on-signal']};border-radius:16px 16px 6px 16px;padding:9px 13px}
+  `, `${link(p, [[972, 79], [1120, 79], [1120, 116]], 22)}
+    ${computer(p, { cx: 1120, top: 116, h: 184 }, screen)}
+    <div class="req"><div>${ask}</div></div>
     <div class="id"><img src="${icon}"><div>${member.eyebrow ? `<div class="eyebrow">${esc(member.eyebrow)}</div>` : ''}<h1>${esc(member.title)}</h1><p class="line">${esc(member.line[locale])}</p></div></div>`);
 }
 
 function appSocial(faces, member, locale) {
   const p = palette('light');
   const zh = locale === 'zh-CN';
-  const icon = dataUri(appIcon(c, member.glyph));
+  const icon = appIconPng;
   const card = { x: 744, y: 64, w: 372 };
-  const lx = 1200, ly = card.y + 66, F = { x: 868, y: 318, w: 380, h: 176, off: 40 };
-  const result = `<div style="padding:16px 18px;${typo('code-md')}">
-      <div style="display:flex;gap:10px;${typo('label-md')};color:${p.muted};margin-bottom:10px"><b style="font-weight:600;color:${p.fg}">MacBook Pro</b><span style="margin-left:auto;color:${p.ok}">● ${zh ? '已连接' : 'connected'}</span></div>
-      <div style="color:${p.muted}">Sources/Checkout/Session.swift</div>
-      <div><span style="color:${p.accent}">$</span> swift test</div>
-      <div>${check(p.ok)} 128 tests passed · 6.2s</div></div>`;
+  const lx = 1000, top = 268;
+  const result = `<div style="${typo('code-md', { fontSize: '17px', lineHeight: 1.55 })};color:${c['on-signal']}">
+      <div>$ ${esc(config.copy.command)}</div>
+      <div>${check(c['on-signal'])} ${esc(config.copy.result)}</div></div>`;
   return page(faces, 1280, 640, `
     body{background:${p.bg};color:${p.fg}}
     .top{position:absolute;left:80px;top:72px;display:flex;align-items:center;gap:24px;z-index:2}
@@ -133,14 +158,13 @@ function appSocial(faces, member, locale) {
     .chip{${typo('label-md')};background:${c.neutral};color:${c['on-surface']};border:1px solid ${p.line};border-radius:${r.sm};padding:7px 10px}
     .card{position:absolute;z-index:2;background:${p.raised};border:1px solid ${p.line};border-radius:${r.lg};padding:16px 18px;box-shadow:${p.shadow}}
     .card .t{${typo('label-md')};color:${p.muted};margin-bottom:10px}
-    .ask{${typo('body-md', { fontSize: '15px' })};background:${c.tertiary};color:${c['on-accent']};border-radius:16px 16px 6px 16px;padding:9px 13px;margin-left:auto;width:fit-content}
+    .ask{${typo('body-md', { fontSize: '15px' })};background:${p.signal};color:${c['on-signal']};border-radius:16px 16px 6px 16px;padding:9px 13px;margin-left:auto;width:fit-content}
     .pk{position:absolute;z-index:3;${typo('code-md', { fontWeight: 600, lineHeight: 1.2 })};background:${p.raised};color:${p.fg};border:1px solid ${p.line};border-radius:999px;padding:6px 11px;box-shadow:0 6px 14px -6px rgba(10,16,30,.25)}
     .pk i{font-style:normal;color:${p.accent}}
-  `, `${link(p, [[card.x + card.w - 20, ly], [lx, ly], [lx, F.y + 30]], 34)}
-    <div class="card" style="left:${card.x}px;top:${card.y}px;width:${card.w}px"><div class="t">ChatGPT</div><div class="ask">${esc(config.copy.request[locale])}</div></div>
-    <div class="pk" style="left:${lx - 58}px;top:${ly + 54}px"><i>→</i> file.write</div>
-    <div class="pk" style="left:${lx - 54}px;top:${ly + 104}px"><i>→</i> shell.run</div>
-    ${stack(p, F, { workspace: esc(config.copy.planes.workspace), capabilities: esc(config.copy.planes.capabilities[locale]) }, result)}
+  `, `${link(p, [[lx, card.y + 60], [lx, top + 4]], 30)}
+    <div class="card" style="left:${card.x}px;top:${card.y}px;width:${card.w}px"><div class="t">${esc(config.copy.chat)}</div><div class="ask">${esc(config.copy.request[locale])}</div></div>
+    ${config.copy.packets.map((name, i) => `<div class="pk" style="left:${lx + 26}px;top:${card.y + 128 + i * 44}px"><i>→</i> ${esc(name)}</div>`).join('')}
+    ${computer(p, { cx: lx, top, h: 300 }, result)}
     <div class="top"><img src="${icon}"><b>${esc(member.title)}</b></div>
     <h1>${esc(config.copy.headline[locale]).replace('，', '，<br>')}</h1>
     <div class="chips">${config.copy.capabilities.map((x) => `<span class="chip">${esc(x)}</span>`).join('')}</div>`);
@@ -148,9 +172,8 @@ function appSocial(faces, member, locale) {
 
 function memberSocial(faces, member) {
   const p = palette('light');
-  const icon = dataUri(appIcon(c, member.glyph));
-  const B = { x: 790, y: 96, w: 210, h: 150 }, F = { x: 904, y: 318, w: 330, h: 210, off: 42 };
-  const front = `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">${glyphSvg(member.glyph, p.fg, 140)}</div>`;
+  const icon = dataUri(componentIcon(c, member.glyph));
+  const B = { x: 760, y: 96, w: 210, h: 150 }, cx = 1060, top = 290;
   return page(faces, 1280, 640, `
     body{background:${p.bg};color:${p.fg}}
     .top{position:absolute;left:80px;top:72px;display:flex;align-items:center;gap:24px;z-index:2}
@@ -161,18 +184,16 @@ function memberSocial(faces, member) {
     .url{position:absolute;left:80px;bottom:76px;${typo('label-lg')};color:${p.muted}}
     .bubble{position:absolute;z-index:2;background:${p.raised};border:1px solid ${p.line};border-radius:28px;box-shadow:${p.shadow};display:flex;align-items:center;justify-content:center;gap:16px}
     .bubble i{width:18px;height:18px;border-radius:50%;background:${c['on-surface']}}
-  `, `${link(p, [[B.x + B.w - 24, B.y + B.h / 2], [F.x + 200, B.y + B.h / 2], [F.x + 200, F.y + 30]], 34)}
+  `, `${link(p, [[B.x + B.w - 24, B.y + B.h / 2], [cx, B.y + B.h / 2], [cx, top + 4]], 34)}
     <svg style="position:absolute;left:0;top:0;z-index:2;overflow:visible" width="1280" height="640"><defs><filter id="lift" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="18" stdDeviation="16" flood-color="#0a101e" flood-opacity=".22"/></filter></defs>
       <path filter="url(#lift)" d="M${B.x + 28} ${B.y} H${B.x + B.w - 28} Q${B.x + B.w} ${B.y} ${B.x + B.w} ${B.y + 28} V${B.y + B.h - 28} Q${B.x + B.w} ${B.y + B.h} ${B.x + B.w - 28} ${B.y + B.h} H${B.x + 96} L${B.x + 30} ${B.y + B.h + 46} L${B.x + 44} ${B.y + B.h} H${B.x + 28} Q${B.x} ${B.y + B.h} ${B.x} ${B.y + B.h - 28} V${B.y + 28} Q${B.x} ${B.y} ${B.x + 28} ${B.y} Z" fill="${p.raised}" stroke="${p.line}"/></svg>
     <div class="bubble" style="left:${B.x}px;top:${B.y}px;width:${B.w}px;height:${B.h}px;background:none;border:0;box-shadow:none"><i></i><i></i><i></i></div>
-    ${stack(p, F, {}, front)}
+    ${computer(p, { cx, top, h: 286 }, glyphSvg(member.glyph, c['on-signal'], 120))}
     <div class="top"><img src="${icon}"><div><div class="eyebrow">${esc(member.eyebrow)}</div><b>${esc(member.title)}</b></div></div>
     <h1>${esc(member.line.en)}</h1>
     <div class="url">github.com/computer-mcp/${member.repository}</div>`);
 }
 
-const browser = await chromium.launch();
-const context = await browser.newContext();
 const written = new Set();
 
 function write(name, data) {
@@ -182,8 +203,44 @@ function write(name, data) {
   written.add(name);
 }
 
+function copyDirectory(source, target) {
+  for (const entry of fs.readdirSync(source, { withFileTypes: true })) {
+    const file = path.join(source, entry.name), name = `${target}/${entry.name}`;
+    if (entry.isDirectory()) copyDirectory(file, name);
+    else write(name, fs.readFileSync(file));
+  }
+}
+
+function generateAppIcon() {
+  fs.mkdirSync(CACHE, { recursive: true });
+  const temporary = fs.mkdtempSync(path.join(CACHE, 'app-icon-'));
+  const output = path.join(temporary, 'output');
+  try {
+    execFileSync('python3', [APP_ICONS_SCRIPT, path.join(ROOT, 'DESIGN.md'), '--name', 'computer-mcp', '--style', 'liquid-glass', '--out', output], { stdio: 'inherit' });
+    const manifest = JSON.parse(fs.readFileSync(path.join(output, 'manifest.json'), 'utf8'));
+    const png = fs.readFileSync(path.join(output, 'renditions', 'macOS-Default.png'));
+    fs.rmSync(EXPORTS, { recursive: true, force: true });
+    copyDirectory(path.join(output, 'computer-mcp.icon'), 'app/AppIcon.icon');
+    write('app/app-icon.png', png);
+    for (const name of ['favicon.svg', 'favicon-32.png', 'apple-touch-icon.png']) {
+      write(`web/${name}`, fs.readFileSync(path.join(output, 'web', name)));
+    }
+    write('web/avatar.png', fs.readFileSync(path.join(output, 'web', 'avatar-1024.png')));
+    const renderer = typeof manifest.renderer === 'string' ? JSON.parse(manifest.renderer) : manifest.renderer;
+    return { png: dataUri(png, 'image/png'), renderer, generator: sha256(fs.readFileSync(APP_ICONS_SCRIPT)) };
+  } finally {
+    fs.rmSync(temporary, { recursive: true, force: true });
+  }
+}
+
+const app = generateAppIcon();
+const appIconPng = app.png;
+const faces = await fonts();
+const browser = await chromium.launch();
+const context = await browser.newContext();
+
 async function shot(name, html, [w, h, scale = 1], transparent = false) {
-  const tmp = path.join(os.tmpdir(), `computer-mcp-brand-${process.pid}.html`);
+  const tmp = path.join(CACHE, 'render.html');
   fs.writeFileSync(tmp, html);
   const pg = await context.newPage({ deviceScaleFactor: scale });
   await pg.setViewportSize({ width: w, height: h });
@@ -201,24 +258,15 @@ async function shot(name, html, [w, h, scale = 1], transparent = false) {
 
 const raster = (faces, svg, [w, h]) => page(faces, w, h, 'body{background:transparent}img{width:100%;height:100%;display:block}', `<img src="${dataUri(svg)}">`);
 
-fs.rmSync(EXPORTS, { recursive: true, force: true });
-const faces = await fonts();
 const S = config.sizes;
-
-for (const [name, data] of Object.entries(iconComposer(c, 'node'))) write(`app/AppIcon.icon/${name}`, data);
-const app = appIcon(c, 'node');
-write('app/app-icon.svg', app);
-await shot('app/app-icon.png', raster(faces, app, S.app_icon), S.app_icon, true);
-write('web/favicon.svg', appIcon(c, 'node', { small: true }));
-await shot('web/favicon-32.png', raster(faces, appIcon(c, 'node', { small: true }), S.favicon), S.favicon, true);
-await shot('web/apple-touch-icon.png', raster(faces, fullBleedIcon(c, 'node'), S.apple_touch_icon), S.apple_touch_icon);
-await shot('web/avatar.png', raster(faces, fullBleedIcon(c, 'node'), S.avatar), S.avatar);
 
 for (const member of config.members) {
   const repo = member.repository;
-  const svg = appIcon(c, member.glyph);
-  write(`icons/${repo}.svg`, svg);
-  await shot(`icons/${repo}.png`, raster(faces, svg, S.icon), S.icon, true);
+  if (repo !== 'computer-mcp') {
+    const svg = componentIcon(c, member.glyph);
+    write(`icons/${repo}.svg`, svg);
+    await shot(`icons/${repo}.png`, raster(faces, svg, S.icon), S.icon, true);
+  }
   for (const locale of Object.keys(member.line)) {
     const suffix = locale === 'en' ? '' : `-${locale}`;
     for (const mode of ['light', 'dark']) await shot(`headers/${repo}${suffix}-${mode}.png`, header(faces, member, mode, locale), S.header);
@@ -230,7 +278,7 @@ const pkg = JSON.parse(fs.readFileSync(path.join(BRAND, 'node_modules/playwright
 const manifest = {
   schema_version: 1,
   inputs: Object.fromEntries(INPUTS.map((name) => [name, sha256(fs.readFileSync(path.join(ROOT, name)))])),
-  renderer: { playwright: pkg.version, chromium: browser.version(), node: process.version, platform: process.platform, architecture: process.arch },
+  renderer: { playwright: pkg.version, chromium: browser.version(), node: process.version, platform: process.platform, architecture: process.arch, ictool: app.renderer, app_icons_sha256: app.generator },
   exports: Object.fromEntries([...written].sort().map((name) => [name, sha256(fs.readFileSync(path.join(EXPORTS, name)))])),
 };
 await browser.close();

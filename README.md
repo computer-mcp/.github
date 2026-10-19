@@ -12,8 +12,9 @@ conventions every Computer MCP repository shares.
   Apps and Actions credentials with `MAINTENANCE.md`.
 - `DESIGN.md` is the design system: tokens, components, the icon family and
   composition rules.
-- `Brand/` holds the renderer, its configuration and the rendered `Exports/`
-  with their `manifest.json`.
+- `Brand/` holds the renderer, its configuration, the App icon's original layers
+  in `Brand/app-icon/layers/` and the rendered `Exports/` with their
+  `manifest.json`.
 - `.github/workflows/brand-check.yml` is the reusable workflow each repository
   calls to verify its brand lock.
 
@@ -23,12 +24,23 @@ Text rendered into images (`Brand/config.json` `copy` and `members`) must match 
 
 ## Updating the brand
 
+Install Icon Composer from Xcode and set `APP_ICONS_SCRIPT` to the
+`apple-app-icon-design` generator script (`skills/apple-app-icon-design/scripts/app_icons.py` in the
+[showxu/skills](https://github.com/showxu/skills) repository). The manifest
+records the script's SHA-256 next to the renderer versions. The generator finds
+Icon Composer's `ictool` in the selected Xcode installation; set `IC_TOOL` to
+select another export-capable renderer. Python 3 and `rsvg-convert` are also
+required by the generator.
+
 1. Edit `DESIGN.md` or `Brand/config.json`.
 2. Render: `npm ci --prefix Brand`, `npx --prefix Brand playwright install --only-shell chromium`,
    then `node Brand/render.mjs`.
 3. Preview each macOS rendition of the App icon with Icon Composer's `ictool
-   Brand/Exports/app/AppIcon.icon --export-image --platform macOS --rendition <name>`
-   for Default, Dark, ClearLight, ClearDark, TintedLight and TintedDark.
+   Brand/Exports/app/AppIcon.icon --export-image --platform macOS --rendition <name>
+   --output-file Brand/.cache/app-icon-preview.png --width 1024 --height 1024
+   --scale 1 --design-generation <generation>`
+   for Default, Dark, ClearLight, ClearDark, TintedLight and TintedDark, using
+   the `design_generation` from the Iconography entry.
 4. Check: `npm --prefix Brand run lint` and `python3 Brand/brand.py check`.
 5. Commit `DESIGN.md`, `Brand/` and the exports together.
 
