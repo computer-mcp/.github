@@ -389,11 +389,123 @@ radius; the body is the macOS rounded rectangle on the 824px grid.
   prompt, codex braces, swift-format aligned bars, claude speech bracket, cursor text caret, trae play
   wedge, homebrew-tap install tray.
 - **Small sizes:** at 32px and below, drop the workspace plane and thicken the glyph.
-- **App icon:** delivered as an Icon Composer document on an ink background with three depth groups
-  — the result plane with its glyph, the capabilities plane and the workspace plane — plus a legacy
-  `AppIcon.icns` for macOS 14 and 15.
+- **App icon:** an original compact computer in ivory glass with an amber screen and a recessed chin,
+  over a violet design grid; defined by the `computer-mcp` entry in [Iconography](#iconography) and
+  delivered as an Icon Composer document plus a legacy `AppIcon.icns` for macOS 14 and 15.
 - **Never:** vendor logos, the Apple or Swift logo, SF Symbols or SF Pro inside brand artwork. The
   swift-sdk fork keeps its upstream identity.
+
+## Iconography
+
+The App icon is a Liquid Glass icon generated from this entry with the `apple-app-icon-design` generator. Its layers are original artwork in `Brand/app-icon/layers/`: a design grid, the computer's recessed chin, its amber screen light and its ivory glass case. Accepted lint findings: the grid lines are hairlines that fade below 32 px, the white grid sits under the glass case and chin by design, and the icon uses four groups so the case, light, chin and grid keep separate materials.
+
+```json
+{
+  "app_icons": {
+    "computer-mcp": {
+      "background": "#5A4BF5",
+      "gradient": true,
+      "groups": [
+        {
+          "name": "Grid",
+          "layers": [
+            {
+              "source": "Brand/app-icon/layers/grid.svg",
+              "name": "grid",
+              "fill": {
+                "solid": "#FFFFFF"
+              },
+              "opacity": 0.2
+            }
+          ],
+          "shadow": {
+            "kind": "none",
+            "opacity": 0
+          },
+          "specular": false
+        },
+        {
+          "name": "Base",
+          "layers": [
+            {
+              "source": "Brand/app-icon/layers/crt-base.svg",
+              "name": "crt-base",
+              "fill": {
+                "automatic-gradient": "#D8CDB0A6"
+              }
+            }
+          ],
+          "shadow": {
+            "kind": "neutral",
+            "opacity": 0.4
+          },
+          "translucency": {
+            "enabled": true,
+            "value": 0.35
+          },
+          "blur-material": 0.5,
+          "refractivity": {
+            "enabled": true,
+            "strength": 0.6,
+            "depth": 0
+          }
+        },
+        {
+          "name": "Light",
+          "layers": [
+            {
+              "source": "Brand/app-icon/layers/crt-light.svg",
+              "name": "crt-light",
+              "fill": {
+                "automatic-gradient": "#FFB347"
+              }
+            }
+          ],
+          "shadow": {
+            "kind": "layer-color",
+            "opacity": 0.5
+          },
+          "translucency": {
+            "enabled": true,
+            "value": 0.1
+          }
+        },
+        {
+          "name": "Computer",
+          "layers": [
+            {
+              "source": "Brand/app-icon/layers/crt-body.svg",
+              "name": "crt-body",
+              "fill": {
+                "automatic-gradient": "#F6EEDBA6"
+              }
+            }
+          ],
+          "shadow": {
+            "kind": "neutral",
+            "opacity": 0.5
+          },
+          "translucency": {
+            "enabled": true,
+            "value": 0.35
+          },
+          "blur-material": 0.5,
+          "refractivity": {
+            "enabled": true,
+            "strength": 0.6,
+            "depth": 0
+          }
+        }
+      ],
+      "styles": {
+        "liquid-glass": {
+          "design_generation": 27
+        }
+      }
+    }
+  }
+}
+```
 
 ## Components
 
