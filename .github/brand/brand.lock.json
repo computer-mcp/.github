@@ -1,12 +1,12 @@
 {
   "schema_version": 2,
   "authority": "https://github.com/computer-mcp/.github",
-  "revision": "ce8989cf08bb4137a0f453b798206a4a426925622d4624b8c766002709af534c",
+  "revision": "5ff56facb77c59c21de2ba47a56516b9bbf8bdff65b9d87077c431e5ffa2657d",
   "consumer": ".github",
   "files": {
-    "profile/brand/header-light.png": "8f6bd41918107422bedffc42cc9741871b10ff47990c593cffbe66cdf2b00520",
-    "profile/brand/header-dark.png": "4d54cd5b8b27df05fe43908b8ef306cbc5c27d58e2c41e06f72f4e46f7c02244",
-    "profile/brand/avatar.png": "44b30dd05dc0aff593ea2884f89097ae404ddc16985e2622a7c30d3dd873a147"
+    "profile/brand/header-light.png": "b60214fdb6aef03b13bbd46bbbfebbde43b8c74eeb3825b300013e17d19494f5",
+    "profile/brand/header-dark.png": "3a0be729610516dfcd3e882e2c0af351eda5d02dcc83ec12c970f53bcd875355",
+    "profile/brand/avatar.png": "34ce8f1feb34c6f19f9927679fc3b6532bfaa3e884920d9374d61b70d54d9134"
   },
   "entries": {
     "profile/README.md": [

@@ -12,8 +12,9 @@ conventions every Computer MCP repository shares.
   Apps and Actions credentials with `MAINTENANCE.md`.
 - `DESIGN.md` is the design system: tokens, components, the icon family and
   composition rules.
-- `Brand/` holds the renderer, its configuration and the rendered `Exports/`
-  with their `manifest.json`.
+- `Brand/` holds the renderer, its configuration, the App icon's original layers
+  in `Brand/app-icon/layers/` and the rendered `Exports/` with their
+  `manifest.json`.
 - `.github/workflows/brand-check.yml` is the reusable workflow each repository
   calls to verify its brand lock.
 
@@ -24,7 +25,9 @@ Text rendered into images (`Brand/config.json` `copy` and `members`) must match 
 ## Updating the brand
 
 Install Icon Composer from Xcode and set `APP_ICONS_SCRIPT` to the
-`apple-app-icon-design` generator script (`app_icons.py`). The generator finds
+`apple-app-icon-design` generator script (`scripts/app_icons.py` in the
+[showxu/skills](https://github.com/showxu/skills) repository). The manifest
+records the script's SHA-256 next to the renderer versions. The generator finds
 Icon Composer's `ictool` in the selected Xcode installation; set `IC_TOOL` to
 select another export-capable renderer. Python 3 and `rsvg-convert` are also
 required by the generator.
