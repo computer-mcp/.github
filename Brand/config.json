@@ -30,11 +30,7 @@
       "en": "Set the checkout timeout to 30 seconds, then run the tests.",
       "zh-CN": "把结账页的超时改成 30 秒，再跑一下测试。"
     },
-    "capabilities": ["Files", "Shell", "CLI", "MCP", "Skills", "Computer Use"],
-    "planes": {
-      "workspace": "~/Developer/shop",
-      "capabilities": { "en": "Tools you allow", "zh-CN": "你允许的工具" }
-    }
+    "capabilities": ["Files", "Shell", "CLI", "MCP", "Skills", "Computer Use"]
   },
   "members": [
     {

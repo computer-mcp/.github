@@ -26,8 +26,12 @@ colors:
   line-dark: "#2C2938"
   accent-text: "#5A4BF5"
   accent-text-dark: "#8B80FF"
-  plane-back: "#2B2740"
-  on-plane-back: "#C9C3E0"
+  computer-case: "#F4EFE3"
+  computer-case-dark: "#E9E2D2"
+  computer-edge: "#DDD5C3"
+  computer-edge-dark: "#BFB6A3"
+  computer-chin: "#E3DAC6"
+  computer-chin-dark: "#CFC5B0"
   link-rail: "#E6E2FF"
   link-rail-dark: "#2A2547"
   success: "#1A7A43"
@@ -125,7 +129,6 @@ spacing:
   section: 112px
   content-max: 1180px
   gutter: 24px
-  plane-offset: 48px
   link-width: 40px
 components:
   page:
@@ -202,30 +205,28 @@ components:
     typography: "{typography.body-md}"
     rounded: "{rounded.lg}"
     padding: 10px
-  plane-workspace:
-    backgroundColor: "{colors.plane-back}"
-    textColor: "{colors.on-plane-back}"
-    typography: "{typography.label-md}"
-    rounded: "{rounded.lg}"
-    padding: 20px
-  plane-capabilities:
+  computer-case:
+    backgroundColor: "{colors.computer-case}"
+  computer-case-dark:
+    backgroundColor: "{colors.computer-case-dark}"
+  computer-edge:
+    backgroundColor: "{colors.computer-edge}"
+    width: 1.5px
+  computer-edge-dark:
+    backgroundColor: "{colors.computer-edge-dark}"
+    width: 1.5px
+  computer-chin:
+    backgroundColor: "{colors.computer-chin}"
+  computer-chin-dark:
+    backgroundColor: "{colors.computer-chin-dark}"
+  computer-screen:
     backgroundColor: "{colors.signal}"
     textColor: "{colors.on-signal}"
-    typography: "{typography.label-md}"
-    rounded: "{rounded.lg}"
-    padding: 20px
-  plane-result:
-    backgroundColor: "{colors.surface-raised}"
-    textColor: "{colors.on-surface}"
     typography: "{typography.code-md}"
-    rounded: "{rounded.lg}"
-    padding: 20px
-  plane-result-dark:
-    backgroundColor: "{colors.surface-raised-dark}"
-    textColor: "{colors.on-surface-dark}"
+  computer-screen-dark:
+    backgroundColor: "{colors.signal-dark}"
+    textColor: "{colors.on-signal}"
     typography: "{typography.code-md}"
-    rounded: "{rounded.lg}"
-    padding: 20px
   link-rail:
     backgroundColor: "{colors.link-rail}"
     width: "{spacing.link-width}"
@@ -290,16 +291,16 @@ components:
   focus-ring:
     backgroundColor: "{colors.focus}"
     width: 2px
-  app-icon-body:
+  component-icon-body:
     backgroundColor: "{colors.icon-body}"
     size: 824px
-  app-icon-plane-workspace:
+  component-icon-plane-workspace:
     backgroundColor: "{colors.icon-plane-back}"
     rounded: "{rounded.plane}"
-  app-icon-plane-capabilities:
+  component-icon-plane-capabilities:
     backgroundColor: "{colors.icon-plane-mid}"
     rounded: "{rounded.plane}"
-  app-icon-plane-result:
+  component-icon-plane-result:
     backgroundColor: "{colors.icon-plane-front}"
     textColor: "{colors.icon-glyph}"
     rounded: "{rounded.plane}"
@@ -313,11 +314,11 @@ Computer MCP lets the chat people already use reach their own computers. ChatGPT
 code and run commands there, use local CLI tools, MCP servers, Skills and Computer Use, and hand work
 to Codex, Claude Code or Cursor when that helps. Each computer decides what it allows.
 
-The visual system draws that model directly. The computer is a **stack of planes** — the authorized
-workspace at the back, the capabilities in the middle, the result in front. The chat is a separate
-card, and one **secure link** runs from it into the stack; calls travel along the link as small
-packets. Everything that belongs to the active path — the request, the link and the capability
-plane it reaches — is amber, the light of the App icon's screen. Violet is the field the computer
+The visual system draws that model directly. The computer is the **compact machine** of the App
+icon — an ivory case, a recessed chin and a screen. The chat is a separate card, and one **secure
+link** runs from its request into the computer; calls travel along the link as small packets.
+Everything that belongs to the active path — the request, the link and the screen it lights — is
+amber. Each member repository shows the same computer with its own glyph on the screen. Violet is the field the computer
 stands on and the color of actions: buttons and links.
 
 The look is warm, tactile and exact: ivory and ink with one violet field and one amber light,
@@ -342,8 +343,9 @@ About window.
 - **Amber (#FFB347; #FFC266 on dark):** the active path only — the chat request, the active link and
   the capability plane it reaches, and the App icon's screen. Labels on amber are ink; amber is
   never used as text on light surfaces.
-- **Ivory (#F4EFE3):** chips, the front plane of component icons and text on code surfaces.
-- **Violet ink (#2B2740):** the workspace plane, with **#C9C3E0** labels.
+- **Ivory (#F4EFE3):** chips, the computer's case (**#DDD5C3** edge, **#E3DAC6** chin; **#E9E2D2**,
+  **#BFB6A3** and **#CFC5B0** on dark), the front plane of component icons and text on code surfaces.
+- **Violet ink (#2B2740):** the back plane of component icons.
 - **Link rail (#E6E2FF; #2A2547 on dark):** the band under the active link.
 - **Surfaces:** page **#FBF8F1** and raised **#FFFFFF** in light mode; **#121019** and **#1C1A26**
   in dark mode, with lines **#E7E1D3** and **#2C2938**.
@@ -373,13 +375,15 @@ artwork faces; web text maps them to the system stack.
 A 12-column grid capped at 1180px with 24px gutters; marketing sections are separated by 112px and
 spacing follows a 4px unit. Reference pages use a single 720px reading column.
 
-- **Hero:** copy on the left; on the right, the chat card sits high and the stack sits low, with the
-  link leaving the chat card, bending once and entering the top of the stack. Packets sit on the
+- **Hero:** copy on the left; on the right, the chat card sits high and the computer sits low, with
+  the link leaving the request, bending once and entering the top of the computer. Packets sit on the
   vertical run of the link.
-- **README header (1280 × 320, light and dark):** icon and name on the left, one supporting line,
-  and a small stack-and-link motif breaking the right edge.
-- **Social card (1280 × 640):** icon and name at the top left, the headline below, capability chips at
-  the bottom and the motif on the right.
+- **README header (1280 × 320, light and dark):** icon and name on the left, one supporting line;
+  on the right the request bubble, the link turning down into the top of the computer, and the
+  member's glyph on its amber screen (the App's screen is plain light).
+- **Social card (1280 × 640):** icon and name at the top left, the headline below and capability
+  chips at the bottom; on the right the chat card, the link with its packets and the computer — the
+  App's screen shows the command and its passing result, a member's screen shows its glyph.
 - **Website:** compact sticky navigation with the App icon, product name, core links, language switch
   and download action; the hero; capability examples for files and commands, CLI, MCP, Skills,
   Computer Use and coding-agent hand-off; how hosts connect and how permissions work on each
@@ -389,17 +393,17 @@ spacing follows a 4px unit. Reference pages use a single 720px reading column.
 
 ## Elevation & Depth
 
-Depth comes from **offset stacking**, not blur. A plane sits 48px up and to the right of the plane
-beneath it and casts a short, crisp shadow (`0 1px 0 rgba(0,0,0,.05), 0 22px 40px -14px
-rgba(10,16,30,.30)`). At most three planes stack. The chat card uses the same shadow. The link runs
-on the page plane, beneath cards and planes. In dark mode, shadows deepen
-(`0 24px 48px -16px rgba(0,0,0,.6)`) and raised surfaces add a 1px line border.
+Depth comes from **crisp shadows and layering**, not blur. Cards and the computer cast a short shadow
+(`0 1px 0 rgba(0,0,0,.05), 0 22px 40px -14px rgba(10,16,30,.30)`); the computer's chin sits one layer
+behind its case. The link runs on the page plane, beneath cards and the computer. In dark mode,
+shadows deepen (`0 24px 48px -16px rgba(0,0,0,.6)`) and raised surfaces add a 1px line border.
 
 ## Shapes
 
-Planes and cards use a 20px radius; buttons 12px; chips 6px; packets are fully rounded. The link is a
-straight band with round caps that bends at most once. At 1024 scale the App icon uses a 64px plane
-radius; the body is the macOS rounded rectangle on the 824px grid.
+Cards use a 20px radius; buttons 12px; chips 6px; packets are fully rounded. The link is a
+straight band with round caps that bends at most once. The computer is drawn from the App icon's own
+layers with continuous corners; component icons use a 64px plane radius on the 824px grid at 1024
+scale.
 
 ## Icon Family
 
@@ -407,8 +411,8 @@ radius; the body is the macOS rounded rectangle on the 824px grid.
   workspace, amber capabilities, ivory result — each plane 58px up and to the right of the one beneath it. The mark
   is the computer alone; the chat card and the link appear only in compositions around it. No
   isometric projection; avoid any resemblance to cube marks.
-- **Glyph:** the front plane carries one ink glyph with a 9% stroke. The App uses the **local node**
-  (a dot inside a ring). Each component swaps only this glyph: computer-use pointer, apple-cli
+- **Glyph:** the front plane carries one ink glyph with a 9% stroke; the same glyph appears on the
+  computer's screen in that member's compositions. Each component swaps only this glyph: computer-use pointer, apple-cli
   prompt, codex braces, swift-format aligned bars, claude speech bracket, cursor text caret, trae play
   wedge, homebrew-tap install tray.
 - **Small sizes:** at 32px and below, drop the workspace plane and thicken the glyph.
@@ -536,10 +540,9 @@ The App icon is a Liquid Glass icon generated from this entry with the `apple-ap
 - **Secondary button:** raised surface with a 1px line border.
 - **Chat card:** raised surface, 20px radius, a title row naming the chat, and the request as a
   amber bubble with ink text.
-- **Planes:** violet-ink workspace plane labelled with the authorized folder; amber capabilities
-  plane labelled "Tools you allow"; raised result plane with the computer's name, a connected
-  status, the touched file and a passing command. Capability chips beside the composition name
-  Files, Shell, CLI, MCP, Skills and Computer Use.
+- **Computer:** the App icon's machine drawn flat — ivory case with a hairline edge, recessed chin,
+  amber screen carrying the member glyph or, for the App, the command and its result. Capability chips
+  beside the composition name Files, Shell, CLI, MCP, Skills and Computer Use.
 - **Link and packets:** a link-rail band with a 6px amber line; packets are raised pills naming
   the tool, such as `file.write`.
 - **Status:** green for success, red for removals, caution badge for actions awaiting confirmation.
@@ -551,23 +554,23 @@ The App icon is a Liquid Glass icon generated from this entry with the `apple-ap
 - Do keep amber for the active path and violet for actions and links; never set amber text on a
   light surface.
 - Do show both the chat and the computer whenever the link appears.
-- Do stack at most three planes, offset up and to the right.
+- Do draw the computer from the App icon's layers; never redraw or restyle it per surface.
 - Do render every image text with the bundled OFL fonts, in both light and dark.
-- Don't use gradients on planes, or rotate them.
+- Don't use gradients on cards or the computer, or rotate them.
 - Don't draw clouds, globes or padlocks; the link carries the meaning.
 - Don't put text inside the App icon.
 
 ## Responsive
 
 Breakpoints are 900px, 600px and 370px. Below 900px the hero stacks copy above the illustration, the
-link becomes vertical and the plane offset halves to 24px. Below 600px the stack collapses to two
-planes and the display size drops to 52px (Chinese 44px); side margins are 24px, and 16px below
+link becomes vertical and the computer scales down with the column. Below 600px the display size
+drops to 52px (Chinese 44px); side margins are 24px, and 16px below
 370px. Touch targets stay at least 44px. Controls keep visible focus, meaningful selected states,
 keyboard operation and reduced-motion support.
 
 ## Iteration Guide
 
 Change tokens here first, then regenerate every asset with the organization renderer and deliver
-them through each repository's brand lock. A new component swaps only the front-plane glyph and
-never introduces a new color. Check the App icon in every macOS rendition, including Clear and
+them through each repository's brand lock. A new component swaps only its glyph — on the front
+plane of its icon and on the computer's screen — and never introduces a new color. Check the App icon in every macOS rendition, including Clear and
 Tinted, before delivery. The repository README lists the render, check and delivery commands.

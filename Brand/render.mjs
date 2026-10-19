@@ -70,6 +70,9 @@ function palette(mode) {
     accent: dark ? c['accent-text-dark'] : c['accent-text'],
     signal: dark ? c['signal-dark'] : c.signal,
     rail: dark ? c['link-rail-dark'] : c['link-rail'],
+    caseFill: dark ? c['computer-case-dark'] : c['computer-case'],
+    caseEdge: dark ? c['computer-edge-dark'] : c['computer-edge'],
+    chin: dark ? c['computer-chin-dark'] : c['computer-chin'],
     ok: dark ? c['success-dark'] : c.success,
     shadow: dark ? '0 24px 48px -16px rgba(0,0,0,.6)' : '0 1px 0 rgba(0,0,0,.05),0 22px 40px -14px rgba(10,16,30,.30)',
   };
@@ -84,13 +87,26 @@ body{position:relative;-webkit-font-smoothing:antialiased;text-rendering:geometr
 ${css}
 </style></head><body>${body}</body></html>`;
 
-// Planes offset up and to the right; front is the top-right plane.
-function stack(p, { x, y, w, h, off }, labels = {}, front = '') {
-  const label = (role) => `display:flex;align-items:flex-end;padding:0 18px 12px;${typo(role, { fontWeight: 600, lineHeight: 1.2 })};white-space:nowrap`;
-  return `
-    <div class="pl" style="left:${x - 2 * off}px;top:${y + 2 * off}px;width:${w}px;height:${h}px;background:${c['plane-back']};color:${c['on-plane-back']};${label('code-md')}">${labels.workspace || ''}</div>
-    <div class="pl" style="left:${x - off}px;top:${y + off}px;width:${w}px;height:${h}px;background:${p.signal};color:${c['on-signal']};box-shadow:${p.shadow};${label('label-md')}">${labels.capabilities || ''}</div>
-    <div class="pl" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px;background:${p.raised};border:1px solid ${p.line};box-shadow:${p.shadow};color:${p.fg}">${front}</div>`;
+// The App icon's computer, drawn flat from its own layers: chin, amber screen, ivory case.
+// (cx, top) is the top centre of the case; h is the height of case and chin together.
+const LAYER = (name) => {
+  const svg = fs.readFileSync(path.join(BRAND, 'app-icon', 'layers', `${name}.svg`), 'utf8');
+  return svg.slice(svg.indexOf('>') + 1, svg.lastIndexOf('</svg>')).replace(/fill="#[0-9A-Fa-f]{6}"/g, '');
+};
+const CASE = { x0: 240, y0: 196, x1: 784, y1: 782 };   // case and chin bounds in layer coordinates
+const SCREEN = { x: 286, y: 240, w: 452, h: 344 };     // screen light bounds in layer coordinates
+
+function computer(p, { cx, top, h }, screen = '') {
+  const s = h / (CASE.y1 - CASE.y0), x = cx - ((CASE.x0 + CASE.x1) / 2) * s, y = top - CASE.y0 * s;
+  const w = (CASE.x1 - CASE.x0) * s;
+  const inset = `left:${x + SCREEN.x * s}px;top:${y + SCREEN.y * s}px;width:${SCREEN.w * s}px;height:${SCREEN.h * s}px`;
+  return `<svg style="position:absolute;left:0;top:0;overflow:visible;filter:drop-shadow(${p.dark ? '0 22px 30px rgba(0,0,0,.55)' : '0 18px 26px rgba(10,16,30,.22)'})" width="1" height="1">
+      <g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${s.toFixed(4)})">
+        <g fill="${p.chin}">${LAYER('crt-base')}</g>
+        <g fill="${p.signal}">${LAYER('crt-light')}</g>
+        <g fill="${p.caseFill}" stroke="${p.caseEdge}" stroke-width="${(1.5 / s).toFixed(2)}">${LAYER('crt-body')}</g>
+      </g></svg>
+    <div style="position:absolute;${inset};display:flex;align-items:center;justify-content:center;color:${c['on-signal']}" data-w="${w.toFixed(0)}">${screen}</div>`;
 }
 
 function link(p, points, width = 30) {
@@ -108,17 +124,20 @@ function header(faces, member, mode, locale = 'en') {
   const p = palette(mode);
   const isApp = member.repository === 'computer-mcp';
   const icon = isApp ? appIconPng : dataUri(appIcon(c, member.glyph));
-  const mark = isApp ? `<img src="${icon}" width="104" height="104">` : glyphSvg(member.glyph, p.fg, 104);
-  const front = `<div style="position:absolute;left:0;top:0;width:270px;height:100%;display:flex;align-items:center;justify-content:center">${mark}</div>`;
+  const screen = isApp ? '' : glyphSvg(member.glyph, c['on-signal'], 84);
+  const ask = esc(config.copy.request[locale] ?? config.copy.request.en);
   return page(faces, 1280, 320, `
     body{background:${p.bg};color:${p.fg}}
     .id{position:absolute;left:64px;top:0;height:320px;display:flex;align-items:center;gap:36px;z-index:2}
     .id img{width:184px;height:184px}
     .eyebrow{${typo('label-md')};color:${p.accent};margin-bottom:12px}
     h1{${typo('headline-lg')}}
-    .line{${typo('body-lg', { fontSize: '21px' })};color:${p.muted};margin-top:12px;max-width:620px}
-  `, `${link(p, [[1120, -20], [1120, 120]], 26)}
-    ${stack(p, { x: 1010, y: 96, w: 300, h: 196, off: 34 }, {}, front)}
+    .line{${typo('body-lg', { fontSize: '21px' })};color:${p.muted};margin-top:12px;max-width:560px}
+    .req{position:absolute;left:688px;top:34px;width:290px;z-index:2;background:${p.raised};border:1px solid ${p.line};border-radius:${r.lg};padding:12px;box-shadow:${p.shadow}}
+    .req div{${typo('body-md', { fontSize: '15px', lineHeight: 1.35 })};background:${p.signal};color:${c['on-signal']};border-radius:16px 16px 6px 16px;padding:9px 13px}
+  `, `${link(p, [[972, 79], [1120, 79], [1120, 116]], 22)}
+    ${computer(p, { cx: 1120, top: 116, h: 184 }, screen)}
+    <div class="req"><div>${ask}</div></div>
     <div class="id"><img src="${icon}"><div>${member.eyebrow ? `<div class="eyebrow">${esc(member.eyebrow)}</div>` : ''}<h1>${esc(member.title)}</h1><p class="line">${esc(member.line[locale])}</p></div></div>`);
 }
 
@@ -127,12 +146,10 @@ function appSocial(faces, member, locale) {
   const zh = locale === 'zh-CN';
   const icon = appIconPng;
   const card = { x: 744, y: 64, w: 372 };
-  const lx = 1200, ly = card.y + 66, F = { x: 868, y: 318, w: 380, h: 176, off: 40 };
-  const result = `<div style="padding:16px 18px;${typo('code-md')}">
-      <div style="display:flex;gap:10px;${typo('label-md')};color:${p.muted};margin-bottom:10px"><b style="font-weight:600;color:${p.fg}">MacBook Pro</b><span style="margin-left:auto;color:${p.ok}">● ${zh ? '已连接' : 'connected'}</span></div>
-      <div style="color:${p.muted}">Sources/Checkout/Session.swift</div>
-      <div><span style="color:${p.accent}">$</span> swift test</div>
-      <div>${check(p.ok)} 128 tests passed · 6.2s</div></div>`;
+  const lx = 1000, top = 268;
+  const result = `<div style="${typo('code-md', { fontSize: '17px', lineHeight: 1.55 })};color:${c['on-signal']}">
+      <div>$ swift test</div>
+      <div>${check(c['on-signal'])} 128 tests passed</div></div>`;
   return page(faces, 1280, 640, `
     body{background:${p.bg};color:${p.fg}}
     .top{position:absolute;left:80px;top:72px;display:flex;align-items:center;gap:24px;z-index:2}
@@ -146,11 +163,11 @@ function appSocial(faces, member, locale) {
     .ask{${typo('body-md', { fontSize: '15px' })};background:${p.signal};color:${c['on-signal']};border-radius:16px 16px 6px 16px;padding:9px 13px;margin-left:auto;width:fit-content}
     .pk{position:absolute;z-index:3;${typo('code-md', { fontWeight: 600, lineHeight: 1.2 })};background:${p.raised};color:${p.fg};border:1px solid ${p.line};border-radius:999px;padding:6px 11px;box-shadow:0 6px 14px -6px rgba(10,16,30,.25)}
     .pk i{font-style:normal;color:${p.accent}}
-  `, `${link(p, [[card.x + card.w - 20, ly], [lx, ly], [lx, F.y + 30]], 34)}
+  `, `${link(p, [[lx, card.y + 60], [lx, top + 4]], 30)}
     <div class="card" style="left:${card.x}px;top:${card.y}px;width:${card.w}px"><div class="t">ChatGPT</div><div class="ask">${esc(config.copy.request[locale])}</div></div>
-    <div class="pk" style="left:${lx - 58}px;top:${ly + 54}px"><i>→</i> file.write</div>
-    <div class="pk" style="left:${lx - 54}px;top:${ly + 104}px"><i>→</i> shell.run</div>
-    ${stack(p, F, { workspace: esc(config.copy.planes.workspace), capabilities: esc(config.copy.planes.capabilities[locale]) }, result)}
+    <div class="pk" style="left:${lx + 26}px;top:${card.y + 128}px"><i>→</i> file.write</div>
+    <div class="pk" style="left:${lx + 26}px;top:${card.y + 172}px"><i>→</i> shell.run</div>
+    ${computer(p, { cx: lx, top, h: 300 }, result)}
     <div class="top"><img src="${icon}"><b>${esc(member.title)}</b></div>
     <h1>${esc(config.copy.headline[locale]).replace('，', '，<br>')}</h1>
     <div class="chips">${config.copy.capabilities.map((x) => `<span class="chip">${esc(x)}</span>`).join('')}</div>`);
@@ -159,8 +176,7 @@ function appSocial(faces, member, locale) {
 function memberSocial(faces, member) {
   const p = palette('light');
   const icon = dataUri(appIcon(c, member.glyph));
-  const B = { x: 790, y: 96, w: 210, h: 150 }, F = { x: 904, y: 318, w: 330, h: 210, off: 42 };
-  const front = `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">${glyphSvg(member.glyph, p.fg, 140)}</div>`;
+  const B = { x: 760, y: 96, w: 210, h: 150 }, cx = 1060, top = 290;
   return page(faces, 1280, 640, `
     body{background:${p.bg};color:${p.fg}}
     .top{position:absolute;left:80px;top:72px;display:flex;align-items:center;gap:24px;z-index:2}
@@ -171,11 +187,11 @@ function memberSocial(faces, member) {
     .url{position:absolute;left:80px;bottom:76px;${typo('label-lg')};color:${p.muted}}
     .bubble{position:absolute;z-index:2;background:${p.raised};border:1px solid ${p.line};border-radius:28px;box-shadow:${p.shadow};display:flex;align-items:center;justify-content:center;gap:16px}
     .bubble i{width:18px;height:18px;border-radius:50%;background:${c['on-surface']}}
-  `, `${link(p, [[B.x + B.w - 24, B.y + B.h / 2], [F.x + 200, B.y + B.h / 2], [F.x + 200, F.y + 30]], 34)}
+  `, `${link(p, [[B.x + B.w - 24, B.y + B.h / 2], [cx, B.y + B.h / 2], [cx, top + 4]], 34)}
     <svg style="position:absolute;left:0;top:0;z-index:2;overflow:visible" width="1280" height="640"><defs><filter id="lift" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="18" stdDeviation="16" flood-color="#0a101e" flood-opacity=".22"/></filter></defs>
       <path filter="url(#lift)" d="M${B.x + 28} ${B.y} H${B.x + B.w - 28} Q${B.x + B.w} ${B.y} ${B.x + B.w} ${B.y + 28} V${B.y + B.h - 28} Q${B.x + B.w} ${B.y + B.h} ${B.x + B.w - 28} ${B.y + B.h} H${B.x + 96} L${B.x + 30} ${B.y + B.h + 46} L${B.x + 44} ${B.y + B.h} H${B.x + 28} Q${B.x} ${B.y + B.h} ${B.x} ${B.y + B.h - 28} V${B.y + 28} Q${B.x} ${B.y} ${B.x + 28} ${B.y} Z" fill="${p.raised}" stroke="${p.line}"/></svg>
     <div class="bubble" style="left:${B.x}px;top:${B.y}px;width:${B.w}px;height:${B.h}px;background:none;border:0;box-shadow:none"><i></i><i></i><i></i></div>
-    ${stack(p, F, {}, front)}
+    ${computer(p, { cx, top, h: 286 }, glyphSvg(member.glyph, c['on-signal'], 120))}
     <div class="top"><img src="${icon}"><div><div class="eyebrow">${esc(member.eyebrow)}</div><b>${esc(member.title)}</b></div></div>
     <h1>${esc(member.line.en)}</h1>
     <div class="url">github.com/computer-mcp/${member.repository}</div>`);
