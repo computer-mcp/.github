@@ -23,12 +23,21 @@ Text rendered into images (`Brand/config.json` `copy` and `members`) must match 
 
 ## Updating the brand
 
+Install Icon Composer from Xcode and set `APP_ICONS_SCRIPT` to the
+`apple-app-icon-design` generator script (`app_icons.py`). The generator finds
+Icon Composer's `ictool` in the selected Xcode installation; set `IC_TOOL` to
+select another export-capable renderer. Python 3 and `rsvg-convert` are also
+required by the generator.
+
 1. Edit `DESIGN.md` or `Brand/config.json`.
 2. Render: `npm ci --prefix Brand`, `npx --prefix Brand playwright install --only-shell chromium`,
    then `node Brand/render.mjs`.
 3. Preview each macOS rendition of the App icon with Icon Composer's `ictool
-   Brand/Exports/app/AppIcon.icon --export-image --platform macOS --rendition <name>`
-   for Default, Dark, ClearLight, ClearDark, TintedLight and TintedDark.
+   Brand/Exports/app/AppIcon.icon --export-image --platform macOS --rendition <name>
+   --output-file Brand/.cache/app-icon-preview.png --width 1024 --height 1024
+   --scale 1 --design-generation <generation>`
+   for Default, Dark, ClearLight, ClearDark, TintedLight and TintedDark, using
+   the `design_generation` from the Iconography entry.
 4. Check: `npm --prefix Brand run lint` and `python3 Brand/brand.py check`.
 5. Commit `DESIGN.md`, `Brand/` and the exports together.
 

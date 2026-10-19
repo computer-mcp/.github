@@ -2,10 +2,6 @@
 // 824 grid; glyphs live in a 100-unit box. Colors come from DESIGN.md tokens.
 
 export const GLYPHS = {
-  node: {
-    strokes: ['M20 50 a30 30 0 1 0 60 0 a30 30 0 1 0 -60 0'],
-    fills: ['M39 50 a11 11 0 1 0 22 0 a11 11 0 1 0 -22 0'],
-  },
   pointer: { strokes: ['M32 16 L32 78 L46 65 L56 86 L67 81 L57 60 L76 60 Z'] },
   prompt: { strokes: ['M24 30 L46 50 L24 70', 'M56 72 L80 72'] },
   braces: {
@@ -86,29 +82,4 @@ export function appIcon(c, glyphName, { small = false } = {}) {
     <linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".08"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/></linearGradient>`;
   return SVG(`<path d="${body}" fill="#000" filter="url(#drop)"/><path d="${body}" fill="${c['icon-body']}"/>
     <g clip-path="url(#body)"><rect width="1024" height="1024" fill="url(#sheen)"/>${artwork(c, glyphName, small)}</g>`, defs);
-}
-
-// Full-bleed rendition for places that apply their own mask: avatars and touch icons.
-const BLEED = 'translate(512 512) scale(1.2427) translate(-512 -512)';
-export function fullBleedIcon(c, glyphName) {
-  return SVG(`<rect width="1024" height="1024" fill="${c['icon-body']}"/><g transform="${BLEED}">${artwork(c, glyphName, false)}</g>`, SHADOW);
-}
-
-// Icon Composer document: square, unmasked layers on the full canvas, background as fill.
-export function iconComposer(c, glyphName) {
-  const hex = (h) => h.match(/[0-9a-f]{2}/gi).map((x) => (parseInt(x, 16) / 255).toFixed(5)).join(',');
-  const parts = layers(c, glyphName, false);
-  const files = Object.fromEntries(parts.map(([name, body]) => [`Assets/${name}.svg`, SVG(`<g transform="${BLEED}">${body}</g>`)]));
-  const group = (names) => ({
-    layers: names.map((name) => ({ 'image-name': `${name}.svg`, name })),
-    shadow: { kind: 'neutral', opacity: 0.5 },
-    translucency: { enabled: false, value: 0.5 },
-  });
-  const json = {
-    fill: { solid: `srgb:${hex(c['icon-body'])},1.00000` },
-    groups: [group(['glyph', 'plane-result']), group(['plane-capabilities']), group(['plane-workspace'])],
-    'supported-platforms': { squares: ['macOS'] },
-  };
-  files['icon.json'] = JSON.stringify(json, null, 2) + '\n';
-  return files;
 }

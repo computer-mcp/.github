@@ -1,19 +1,25 @@
 // Render every Computer MCP brand asset from DESIGN.md and config.json into Exports/.
-// Usage: node Brand/render.mjs   (after `npm ci` and `npx playwright install --only-shell chromium`)
+// Usage: APP_ICONS_SCRIPT=/path/to/app_icons.py node Brand/render.mjs
 
+import { execFileSync } from 'node:child_process';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
 import YAML from 'yaml';
 import { chromium } from 'playwright';
-import { appIcon, fullBleedIcon, glyph, iconComposer } from './icons.mjs';
+import { appIcon, glyph } from './icons.mjs';
 
 const BRAND = path.dirname(new URL(import.meta.url).pathname);
 const ROOT = path.dirname(BRAND);
 const EXPORTS = path.join(BRAND, 'Exports');
-const CACHE = path.join(BRAND, '.cache', 'fonts');
-const INPUTS = ['DESIGN.md', 'Brand/config.json', 'Brand/icons.mjs', 'Brand/render.mjs', 'Brand/package.json', 'Brand/package-lock.json'];
+const CACHE = path.join(BRAND, '.cache');
+const INPUTS = [
+  'DESIGN.md', 'Brand/config.json', 'Brand/icons.mjs', 'Brand/render.mjs', 'Brand/package.json', 'Brand/package-lock.json',
+  ...fs.readdirSync(path.join(BRAND, 'app-icon', 'layers')).filter((name) => name.endsWith('.svg')).sort()
+    .map((name) => `Brand/app-icon/layers/${name}`),
+];
+const APP_ICONS_SCRIPT = process.env.APP_ICONS_SCRIPT;
+if (!APP_ICONS_SCRIPT?.trim()) throw new Error('Set APP_ICONS_SCRIPT to the apple-app-icon-design generator script (app_icons.py). Icon Composer from Xcode is required; IC_TOOL can select its ictool.');
 
 const sha256 = (data) => crypto.createHash('sha256').update(data).digest('hex');
 const config = JSON.parse(fs.readFileSync(path.join(BRAND, 'config.json'), 'utf8'));
@@ -21,10 +27,11 @@ const design = YAML.parse(fs.readFileSync(path.join(ROOT, 'DESIGN.md'), 'utf8').
 const c = design.colors, t = design.typography, r = design.rounded;
 
 async function fonts() {
-  fs.mkdirSync(CACHE, { recursive: true });
+  const directory = path.join(CACHE, 'fonts');
+  fs.mkdirSync(directory, { recursive: true });
   const faces = [];
   for (const font of config.fonts) {
-    const file = path.join(CACHE, `${font.sha256}.ttf`);
+    const file = path.join(directory, `${font.sha256}.ttf`);
     if (!fs.existsSync(file)) {
       const response = await fetch(font.url);
       if (!response.ok) throw new Error(`Font download failed: ${font.family}`);
@@ -48,7 +55,7 @@ function typo(name, extra = {}) {
   ].filter(Boolean).join(';');
 }
 
-const dataUri = (svg) => `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
+const dataUri = (data, type = 'image/svg+xml') => `data:${type};base64,${Buffer.from(data).toString('base64')}`;
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
 
 function palette(mode) {
@@ -61,6 +68,7 @@ function palette(mode) {
     muted: dark ? c['on-surface-muted-dark'] : c['on-surface-muted'],
     line: dark ? c['line-dark'] : c.line,
     accent: dark ? c['accent-text-dark'] : c['accent-text'],
+    signal: dark ? c['signal-dark'] : c.signal,
     rail: dark ? c['link-rail-dark'] : c['link-rail'],
     ok: dark ? c['success-dark'] : c.success,
     shadow: dark ? '0 24px 48px -16px rgba(0,0,0,.6)' : '0 1px 0 rgba(0,0,0,.05),0 22px 40px -14px rgba(10,16,30,.30)',
@@ -81,7 +89,7 @@ function stack(p, { x, y, w, h, off }, labels = {}, front = '') {
   const label = (role) => `display:flex;align-items:flex-end;padding:0 18px 12px;${typo(role, { fontWeight: 600, lineHeight: 1.2 })};white-space:nowrap`;
   return `
     <div class="pl" style="left:${x - 2 * off}px;top:${y + 2 * off}px;width:${w}px;height:${h}px;background:${c['plane-back']};color:${c['on-plane-back']};${label('code-md')}">${labels.workspace || ''}</div>
-    <div class="pl" style="left:${x - off}px;top:${y + off}px;width:${w}px;height:${h}px;background:${c.tertiary};color:${c['on-accent']};box-shadow:${p.shadow};${label('label-md')}">${labels.capabilities || ''}</div>
+    <div class="pl" style="left:${x - off}px;top:${y + off}px;width:${w}px;height:${h}px;background:${p.signal};color:${c['on-signal']};box-shadow:${p.shadow};${label('label-md')}">${labels.capabilities || ''}</div>
     <div class="pl" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px;background:${p.raised};border:1px solid ${p.line};box-shadow:${p.shadow};color:${p.fg}">${front}</div>`;
 }
 
@@ -89,7 +97,7 @@ function link(p, points, width = 30) {
   const d = 'M' + points.map(([x, y]) => `${x} ${y}`).join(' L');
   return `<svg width="100%" height="100%" style="position:absolute;inset:0">
     <path d="${d}" fill="none" stroke="${p.rail}" stroke-width="${width}" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="${d}" fill="none" stroke="${c.tertiary}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    <path d="${d}" fill="none" stroke="${p.signal}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 }
 
 const check = (color) => `<svg width="12" height="12" viewBox="0 0 12 12" style="vertical-align:-1px"><path d="M2 6.5 L5 9.5 L10.5 2.5" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
@@ -98,8 +106,10 @@ const glyphSvg = (name, color, size) => `<svg width="${size}" height="${size}" v
 
 function header(faces, member, mode, locale = 'en') {
   const p = palette(mode);
-  const icon = dataUri(appIcon(c, member.glyph));
-  const front = `<div style="position:absolute;left:0;top:0;width:270px;height:100%;display:flex;align-items:center;justify-content:center">${glyphSvg(member.glyph, p.fg, 104)}</div>`;
+  const isApp = member.repository === 'computer-mcp';
+  const icon = isApp ? appIconPng : dataUri(appIcon(c, member.glyph));
+  const mark = isApp ? `<img src="${icon}" width="104" height="104">` : glyphSvg(member.glyph, p.fg, 104);
+  const front = `<div style="position:absolute;left:0;top:0;width:270px;height:100%;display:flex;align-items:center;justify-content:center">${mark}</div>`;
   return page(faces, 1280, 320, `
     body{background:${p.bg};color:${p.fg}}
     .id{position:absolute;left:64px;top:0;height:320px;display:flex;align-items:center;gap:36px;z-index:2}
@@ -115,7 +125,7 @@ function header(faces, member, mode, locale = 'en') {
 function appSocial(faces, member, locale) {
   const p = palette('light');
   const zh = locale === 'zh-CN';
-  const icon = dataUri(appIcon(c, member.glyph));
+  const icon = appIconPng;
   const card = { x: 744, y: 64, w: 372 };
   const lx = 1200, ly = card.y + 66, F = { x: 868, y: 318, w: 380, h: 176, off: 40 };
   const result = `<div style="padding:16px 18px;${typo('code-md')}">
@@ -133,7 +143,7 @@ function appSocial(faces, member, locale) {
     .chip{${typo('label-md')};background:${c.neutral};color:${c['on-surface']};border:1px solid ${p.line};border-radius:${r.sm};padding:7px 10px}
     .card{position:absolute;z-index:2;background:${p.raised};border:1px solid ${p.line};border-radius:${r.lg};padding:16px 18px;box-shadow:${p.shadow}}
     .card .t{${typo('label-md')};color:${p.muted};margin-bottom:10px}
-    .ask{${typo('body-md', { fontSize: '15px' })};background:${c.tertiary};color:${c['on-accent']};border-radius:16px 16px 6px 16px;padding:9px 13px;margin-left:auto;width:fit-content}
+    .ask{${typo('body-md', { fontSize: '15px' })};background:${p.signal};color:${c['on-signal']};border-radius:16px 16px 6px 16px;padding:9px 13px;margin-left:auto;width:fit-content}
     .pk{position:absolute;z-index:3;${typo('code-md', { fontWeight: 600, lineHeight: 1.2 })};background:${p.raised};color:${p.fg};border:1px solid ${p.line};border-radius:999px;padding:6px 11px;box-shadow:0 6px 14px -6px rgba(10,16,30,.25)}
     .pk i{font-style:normal;color:${p.accent}}
   `, `${link(p, [[card.x + card.w - 20, ly], [lx, ly], [lx, F.y + 30]], 34)}
@@ -171,8 +181,6 @@ function memberSocial(faces, member) {
     <div class="url">github.com/computer-mcp/${member.repository}</div>`);
 }
 
-const browser = await chromium.launch();
-const context = await browser.newContext();
 const written = new Set();
 
 function write(name, data) {
@@ -182,8 +190,43 @@ function write(name, data) {
   written.add(name);
 }
 
+function copyDirectory(source, target) {
+  for (const entry of fs.readdirSync(source, { withFileTypes: true })) {
+    const file = path.join(source, entry.name), name = `${target}/${entry.name}`;
+    if (entry.isDirectory()) copyDirectory(file, name);
+    else write(name, fs.readFileSync(file));
+  }
+}
+
+function generateAppIcon() {
+  fs.mkdirSync(CACHE, { recursive: true });
+  const temporary = fs.mkdtempSync(path.join(CACHE, 'app-icon-'));
+  const output = path.join(temporary, 'output');
+  try {
+    execFileSync('python3', [APP_ICONS_SCRIPT, path.join(ROOT, 'DESIGN.md'), '--name', 'computer-mcp', '--style', 'liquid-glass', '--out', output], { stdio: 'inherit' });
+    const manifest = JSON.parse(fs.readFileSync(path.join(output, 'manifest.json'), 'utf8'));
+    const png = fs.readFileSync(path.join(output, 'renditions', 'macOS-Default.png'));
+    fs.rmSync(EXPORTS, { recursive: true, force: true });
+    copyDirectory(path.join(output, 'computer-mcp.icon'), 'app/AppIcon.icon');
+    write('app/app-icon.png', png);
+    for (const name of ['favicon.svg', 'favicon-32.png', 'apple-touch-icon.png']) {
+      write(`web/${name}`, fs.readFileSync(path.join(output, 'web', name)));
+    }
+    write('web/avatar.png', fs.readFileSync(path.join(output, 'web', 'avatar-1024.png')));
+    return { png: dataUri(png, 'image/png'), renderer: manifest.renderer };
+  } finally {
+    fs.rmSync(temporary, { recursive: true, force: true });
+  }
+}
+
+const app = generateAppIcon();
+const appIconPng = app.png;
+const faces = await fonts();
+const browser = await chromium.launch();
+const context = await browser.newContext();
+
 async function shot(name, html, [w, h, scale = 1], transparent = false) {
-  const tmp = path.join(os.tmpdir(), `computer-mcp-brand-${process.pid}.html`);
+  const tmp = path.join(CACHE, 'render.html');
   fs.writeFileSync(tmp, html);
   const pg = await context.newPage({ deviceScaleFactor: scale });
   await pg.setViewportSize({ width: w, height: h });
@@ -201,24 +244,15 @@ async function shot(name, html, [w, h, scale = 1], transparent = false) {
 
 const raster = (faces, svg, [w, h]) => page(faces, w, h, 'body{background:transparent}img{width:100%;height:100%;display:block}', `<img src="${dataUri(svg)}">`);
 
-fs.rmSync(EXPORTS, { recursive: true, force: true });
-const faces = await fonts();
 const S = config.sizes;
-
-for (const [name, data] of Object.entries(iconComposer(c, 'node'))) write(`app/AppIcon.icon/${name}`, data);
-const app = appIcon(c, 'node');
-write('app/app-icon.svg', app);
-await shot('app/app-icon.png', raster(faces, app, S.app_icon), S.app_icon, true);
-write('web/favicon.svg', appIcon(c, 'node', { small: true }));
-await shot('web/favicon-32.png', raster(faces, appIcon(c, 'node', { small: true }), S.favicon), S.favicon, true);
-await shot('web/apple-touch-icon.png', raster(faces, fullBleedIcon(c, 'node'), S.apple_touch_icon), S.apple_touch_icon);
-await shot('web/avatar.png', raster(faces, fullBleedIcon(c, 'node'), S.avatar), S.avatar);
 
 for (const member of config.members) {
   const repo = member.repository;
-  const svg = appIcon(c, member.glyph);
-  write(`icons/${repo}.svg`, svg);
-  await shot(`icons/${repo}.png`, raster(faces, svg, S.icon), S.icon, true);
+  if (repo !== 'computer-mcp') {
+    const svg = appIcon(c, member.glyph);
+    write(`icons/${repo}.svg`, svg);
+    await shot(`icons/${repo}.png`, raster(faces, svg, S.icon), S.icon, true);
+  }
   for (const locale of Object.keys(member.line)) {
     const suffix = locale === 'en' ? '' : `-${locale}`;
     for (const mode of ['light', 'dark']) await shot(`headers/${repo}${suffix}-${mode}.png`, header(faces, member, mode, locale), S.header);
@@ -230,7 +264,7 @@ const pkg = JSON.parse(fs.readFileSync(path.join(BRAND, 'node_modules/playwright
 const manifest = {
   schema_version: 1,
   inputs: Object.fromEntries(INPUTS.map((name) => [name, sha256(fs.readFileSync(path.join(ROOT, name)))])),
-  renderer: { playwright: pkg.version, chromium: browser.version(), node: process.version, platform: process.platform, architecture: process.arch },
+  renderer: { playwright: pkg.version, chromium: browser.version(), node: process.version, platform: process.platform, architecture: process.arch, ictool: app.renderer },
   exports: Object.fromEntries([...written].sort().map((name) => [name, sha256(fs.readFileSync(path.join(EXPORTS, name)))])),
 };
 await browser.close();

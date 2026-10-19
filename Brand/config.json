@@ -39,7 +39,6 @@
   "members": [
     {
       "repository": "computer-mcp",
-      "glyph": "node",
       "title": "Computer MCP",
       "line": {
         "en": "Wherever you chat, your computer is there.",
@@ -131,7 +130,7 @@
     },
     "computer-mcp.github.io": {
       "files": {
-        "public/brand/icon.svg": "app/app-icon.svg",
+        "public/brand/icon.png": "app/app-icon.png",
         "public/brand/favicon.svg": "web/favicon.svg",
         "public/brand/favicon-32.png": "web/favicon-32.png",
         "public/brand/apple-touch-icon.png": "web/apple-touch-icon.png",
@@ -163,10 +162,6 @@
   "sizes": {
     "header": [1280, 320, 2],
     "social": [1280, 640, 1],
-    "icon": [512, 512],
-    "app_icon": [1024, 1024],
-    "avatar": [1024, 1024],
-    "favicon": [32, 32],
-    "apple_touch_icon": [180, 180]
+    "icon": [512, 512]
   }
 }
