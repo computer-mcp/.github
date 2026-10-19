@@ -1,41 +1,46 @@
 ---
 version: alpha
 name: Computer MCP
-description: Your computer as a stack of capability planes, reached from the chat through one secure link. Paper, ink and vermilion.
+description: Your computer as a compact machine whose screen lights amber when a chat works on it, on a violet field. Ivory, ink, violet and amber.
 colors:
-  primary: "#16181D"
-  secondary: "#5B6270"
-  tertiary: "#FF5A36"
-  neutral: "#F4F1EA"
-  surface: "#FBFAF6"
+  primary: "#17161F"
+  secondary: "#5F5B70"
+  tertiary: "#5A4BF5"
+  tertiary-dark: "#8B80FF"
+  on-tertiary: "#FFFFFF"
+  on-tertiary-dark: "#121019"
+  tertiary-hover: "#4A3BE0"
+  signal: "#FFB347"
+  signal-dark: "#FFC266"
+  on-signal: "#17161F"
+  neutral: "#F4EFE3"
+  surface: "#FBF8F1"
   surface-raised: "#FFFFFF"
-  on-surface: "#16181D"
-  on-surface-muted: "#5B6270"
-  line: "#E2DDD2"
-  surface-dark: "#121418"
-  surface-raised-dark: "#1C1F25"
-  on-surface-dark: "#F4F1EA"
-  on-surface-muted-dark: "#A3A9B5"
-  line-dark: "#2C3038"
-  on-accent: "#16181D"
-  accent-hover: "#E84A27"
-  accent-text: "#C2410C"
-  accent-text-dark: "#FF7352"
-  plane-back: "#3A3F48"
-  on-plane-back: "#B8BEC9"
-  link-rail: "#F2D6CC"
-  link-rail-dark: "#3B2621"
+  on-surface: "#17161F"
+  on-surface-muted: "#5F5B70"
+  line: "#E7E1D3"
+  surface-dark: "#121019"
+  surface-raised-dark: "#1C1A26"
+  on-surface-dark: "#F4EFE3"
+  on-surface-muted-dark: "#A9A4BA"
+  line-dark: "#2C2938"
+  accent-text: "#5A4BF5"
+  accent-text-dark: "#8B80FF"
+  plane-back: "#2B2740"
+  on-plane-back: "#C9C3E0"
+  link-rail: "#E6E2FF"
+  link-rail-dark: "#2A2547"
   success: "#1A7A43"
   success-dark: "#5FD08A"
   danger: "#B42318"
   danger-dark: "#FF8A8A"
-  caution: "#FFB224"
-  focus: "#3D6BFF"
-  icon-body: "#16181D"
-  icon-plane-back: "#3A3F48"
-  icon-plane-mid: "#FF5A36"
-  icon-plane-front: "#F4F1EA"
-  icon-glyph: "#16181D"
+  caution: "#FFCC00"
+  focus: "#5A4BF5"
+  icon-body: "#17161F"
+  icon-plane-back: "#2B2740"
+  icon-plane-mid: "#FFB347"
+  icon-plane-front: "#F4EFE3"
+  icon-glyph: "#17161F"
 typography:
   headline-display:
     fontFamily: Inter
@@ -148,13 +153,19 @@ components:
     typography: "{typography.label-md}"
   button-primary:
     backgroundColor: "{colors.tertiary}"
-    textColor: "{colors.on-accent}"
+    textColor: "{colors.on-tertiary}"
     typography: "{typography.label-lg}"
     rounded: "{rounded.md}"
     padding: 14px
   button-primary-hover:
-    backgroundColor: "{colors.accent-hover}"
-    textColor: "{colors.on-accent}"
+    backgroundColor: "{colors.tertiary-hover}"
+    textColor: "{colors.on-tertiary}"
+  button-primary-dark:
+    backgroundColor: "{colors.tertiary-dark}"
+    textColor: "{colors.on-tertiary-dark}"
+    typography: "{typography.label-lg}"
+    rounded: "{rounded.md}"
+    padding: 14px
   button-secondary:
     backgroundColor: "{colors.surface-raised}"
     textColor: "{colors.on-surface}"
@@ -180,8 +191,14 @@ components:
     rounded: "{rounded.lg}"
     padding: 18px
   chat-request:
-    backgroundColor: "{colors.tertiary}"
-    textColor: "{colors.on-accent}"
+    backgroundColor: "{colors.signal}"
+    textColor: "{colors.on-signal}"
+    typography: "{typography.body-md}"
+    rounded: "{rounded.lg}"
+    padding: 10px
+  chat-request-dark:
+    backgroundColor: "{colors.signal-dark}"
+    textColor: "{colors.on-signal}"
     typography: "{typography.body-md}"
     rounded: "{rounded.lg}"
     padding: 10px
@@ -192,8 +209,8 @@ components:
     rounded: "{rounded.lg}"
     padding: 20px
   plane-capabilities:
-    backgroundColor: "{colors.tertiary}"
-    textColor: "{colors.on-accent}"
+    backgroundColor: "{colors.signal}"
+    textColor: "{colors.on-signal}"
     typography: "{typography.label-md}"
     rounded: "{rounded.lg}"
     padding: 20px
@@ -216,7 +233,7 @@ components:
     backgroundColor: "{colors.link-rail-dark}"
     width: "{spacing.link-width}"
   link-active:
-    backgroundColor: "{colors.tertiary}"
+    backgroundColor: "{colors.signal}"
     width: 6px
   packet:
     backgroundColor: "{colors.surface-raised}"
@@ -300,9 +317,11 @@ The visual system draws that model directly. The computer is a **stack of planes
 workspace at the back, the capabilities in the middle, the result in front. The chat is a separate
 card, and one **secure link** runs from it into the stack; calls travel along the link as small
 packets. Everything that belongs to the active path — the request, the link and the capability
-plane it reaches — is vermilion.
+plane it reaches — is amber, the light of the App icon's screen. Violet is the field the computer
+stands on and the color of actions: buttons and links.
 
-The look is warm, tactile and exact: paper and ink, crisp offset shadows, plain system type. It
+The look is warm, tactile and exact: ivory and ink with one violet field and one amber light,
+crisp offset shadows, plain system type. It
 should feel like a well-made tool that runs on your own machine, not a cloud service. Audience:
 developers and people who want ChatGPT to code and operate their computer for them. Tone: direct,
 concrete, unhurried. Density: generous on marketing surfaces, compact in reference material.
@@ -315,19 +334,23 @@ About window.
 
 ## Colors
 
-- **Ink (#16181D):** text, the App icon body and code surfaces. Never pure black.
-- **Slate (#5B6270):** secondary text, captions and metadata.
-- **Vermilion (#FF5A36):** the active path and the primary action. Labels on vermilion are ink;
-  vermilion text on light surfaces uses **#C2410C**, and on dark surfaces **#FF7352**. Hover
-  darkens the fill to **#E84A27**.
-- **Paper (#F4F1EA):** chips and the front plane of the App icon.
-- **Graphite (#3A3F48):** the workspace plane, with **#B8BEC9** labels.
-- **Link rail (#F2D6CC; #3B2621 on dark):** the band under the active link.
-- **Surfaces:** page **#FBFAF6** and raised **#FFFFFF** in light mode; **#121418** and **#1C1F25**
-  in dark mode, with lines **#E2DDD2** and **#2C3038**.
+- **Ink (#17161F):** text, the component icon body and code surfaces. Never pure black.
+- **Slate (#5F5B70):** secondary text, captions and metadata.
+- **Violet (#5A4BF5; #8B80FF on dark):** actions and navigation — primary buttons, links and the
+  App icon's field. Labels on violet are white (#121019 on the dark-mode violet). Hover darkens the
+  fill to **#4A3BE0**.
+- **Amber (#FFB347; #FFC266 on dark):** the active path only — the chat request, the active link and
+  the capability plane it reaches, and the App icon's screen. Labels on amber are ink; amber is
+  never used as text on light surfaces.
+- **Ivory (#F4EFE3):** chips, the front plane of component icons and text on code surfaces.
+- **Violet ink (#2B2740):** the workspace plane, with **#C9C3E0** labels.
+- **Link rail (#E6E2FF; #2A2547 on dark):** the band under the active link.
+- **Surfaces:** page **#FBF8F1** and raised **#FFFFFF** in light mode; **#121019** and **#1C1A26**
+  in dark mode, with lines **#E7E1D3** and **#2C2938**.
 - **Status:** success **#1A7A43** (**#5FD08A** on dark), removals **#B42318** (**#FF8A8A** on dark),
-  caution **#FFB224** with ink text for actions that need confirmation.
-- **Focus (#3D6BFF):** keyboard focus rings only; never decorative.
+  caution **#FFCC00** with ink text for actions that need confirmation — a badge only, distinct
+  from the amber of the active path.
+- **Focus (#5A4BF5):** keyboard focus rings only; never decorative.
 
 Every surface exists in light and dark and follows the viewer's system appearance. Text pairs meet
 WCAG AA in both modes.
@@ -380,8 +403,8 @@ radius; the body is the macOS rounded rectangle on the 824px grid.
 
 ## Icon Family
 
-- **Structure:** an ink body carrying a centred three-plane stack — graphite workspace, vermilion
-  capabilities, paper result — each plane 58px up and to the right of the one beneath it. The mark
+- **Structure:** component icons are an ink body carrying a centred three-plane stack — violet-ink
+  workspace, amber capabilities, ivory result — each plane 58px up and to the right of the one beneath it. The mark
   is the computer alone; the chat card and the link appear only in compositions around it. No
   isometric projection; avoid any resemblance to cube marks.
 - **Glyph:** the front plane carries one ink glyph with a 9% stroke. The App uses the **local node**
@@ -509,23 +532,24 @@ The App icon is a Liquid Glass icon generated from this entry with the `apple-ap
 
 ## Components
 
-- **Primary button:** vermilion fill, ink label in the interface sans, 12px radius.
+- **Primary button:** violet fill, white label in the interface sans, 12px radius.
 - **Secondary button:** raised surface with a 1px line border.
 - **Chat card:** raised surface, 20px radius, a title row naming the chat, and the request as a
-  vermilion bubble with ink text.
-- **Planes:** graphite workspace plane labelled with the authorized folder; vermilion capabilities
+  amber bubble with ink text.
+- **Planes:** violet-ink workspace plane labelled with the authorized folder; amber capabilities
   plane labelled "Tools you allow"; raised result plane with the computer's name, a connected
   status, the touched file and a passing command. Capability chips beside the composition name
   Files, Shell, CLI, MCP, Skills and Computer Use.
-- **Link and packets:** a link-rail band with a 6px vermilion line; packets are raised pills naming
+- **Link and packets:** a link-rail band with a 6px amber line; packets are raised pills naming
   the tool, such as `file.write`.
 - **Status:** green for success, red for removals, caution badge for actions awaiting confirmation.
-- **Chip and code block:** paper chip with a sans label; ink code block with paper text and a
-  vermilion prompt.
+- **Chip and code block:** ivory chip with a sans label; ink code block with ivory text and an
+  amber prompt.
 
 ## Do's and Don'ts
 
-- Do keep vermilion for the active path and the primary action only.
+- Do keep amber for the active path and violet for actions and links; never set amber text on a
+  light surface.
 - Do show both the chat and the computer whenever the link appears.
 - Do stack at most three planes, offset up and to the right.
 - Do render every image text with the bundled OFL fonts, in both light and dark.
