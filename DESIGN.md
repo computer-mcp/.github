@@ -388,8 +388,7 @@ spacing follows a 4px unit. Reference pages use a single 720px reading column.
   member's glyph on its amber screen (the App's screen is plain amber).
 - **Social card (1280 × 640):** icon and name at the top left with the headline below. The App card
   adds capability chips at the bottom and, on the right, the chat card, the link with its packets
-  and the computer whose screen shows the command and its passing result. A member card carries the
-  "Computer MCP plugin" eyebrow and its repository address, and links a typing bubble into the
+  and the computer whose screen shows the command and its passing result. A member card carries its family eyebrow and its repository address, and links a typing bubble into the
   computer showing its glyph.
 - **Website:** compact sticky navigation with the App icon, product name, core links, language
   switch and download action; the hero; capability examples for files and commands, CLI, MCP,
@@ -418,8 +417,7 @@ scale.
 
 - **Structure:** component icons are an ink body carrying a centred three-plane stack — violet-ink
   workspace, amber capabilities, ivory result — each plane 58px up and to the right of the one
-  beneath it. Neither mark carries the chat card or the link; they appear only in compositions
-  around it. No isometric projection; avoid any resemblance to cube marks.
+  beneath it. Icons never carry the chat card or the link; those appear only in compositions around the icons. No isometric projection; avoid any resemblance to cube marks.
 - **Glyph:** the front plane carries one ink glyph with a 9% stroke; the same glyph appears on the
   computer's screen in that member's compositions. Each component swaps only this glyph:
   computer-use pointer, apple-cli prompt, codex braces, swift-format aligned bars, claude speech

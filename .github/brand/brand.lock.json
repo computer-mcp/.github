@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "authority": "https://github.com/computer-mcp/.github",
-  "revision": "5ff56facb77c59c21de2ba47a56516b9bbf8bdff65b9d87077c431e5ffa2657d",
+  "revision": "60eb771e701716094cbf81146e07e5856d83572aec624a7ef5c7750be32acc41",
   "consumer": ".github",
   "files": {
     "profile/brand/header-light.png": "b60214fdb6aef03b13bbd46bbbfebbde43b8c74eeb3825b300013e17d19494f5",

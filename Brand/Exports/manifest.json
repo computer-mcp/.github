@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "inputs": {
-    "DESIGN.md": "d6259d39a78f376da14535f189db8b30d18cb9fc9bef04f83633ab2115aa13d4",
+    "DESIGN.md": "c3f499e7cbd755914f80e1216b370e39c76097dbfdcddb9b3c65343aae241722",
     "Brand/config.json": "20078d557968e6dc4ff27904f71dd8dab73b63d5c5d90adf1c0ab85d5c108cab",
     "Brand/icons.mjs": "19ef1b5d8e73b07228f814b1db1e84e2182c890a66459f24f4597ec10e9d6621",
-    "Brand/render.mjs": "7bffc9330722ffa8721ddb0300054a9198da757b750b5bca87cd9371d64b9eb3",
+    "Brand/render.mjs": "280e5d9ec6bbfab51680b2a685b369669885efa094fa98879d0771cd617de3bb",
     "Brand/package.json": "c5d5e11a37021178ac682ce2fd64a2f55dc4dfe4f333b64f0079cb1ef54686cd",
     "Brand/package-lock.json": "20c5a9a8deb540da6cd2a0bbce74c944c80436b770268b0a84938058b483c169",
     "Brand/app-icon/layers/crt-base.svg": "ab43ecd6e819f7f8713ddf9deecf02198c81d6ebcd0f1b86d4f159db506f98c7",

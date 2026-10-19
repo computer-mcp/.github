@@ -25,7 +25,7 @@ Text rendered into images (`Brand/config.json` `copy` and `members`) must match 
 ## Updating the brand
 
 Install Icon Composer from Xcode and set `APP_ICONS_SCRIPT` to the
-`apple-app-icon-design` generator script (`scripts/app_icons.py` in the
+`apple-app-icon-design` generator script (`skills/apple-app-icon-design/scripts/app_icons.py` in the
 [showxu/skills](https://github.com/showxu/skills) repository). The manifest
 records the script's SHA-256 next to the renderer versions. The generator finds
 Icon Composer's `ictool` in the selected Xcode installation; set `IC_TOOL` to

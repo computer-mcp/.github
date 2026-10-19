@@ -163,8 +163,7 @@ function appSocial(faces, member, locale) {
     .pk i{font-style:normal;color:${p.accent}}
   `, `${link(p, [[lx, card.y + 60], [lx, top + 4]], 30)}
     <div class="card" style="left:${card.x}px;top:${card.y}px;width:${card.w}px"><div class="t">${esc(config.copy.chat)}</div><div class="ask">${esc(config.copy.request[locale])}</div></div>
-    <div class="pk" style="left:${lx + 26}px;top:${card.y + 128}px"><i>→</i> ${esc(config.copy.packets[0])}</div>
-    <div class="pk" style="left:${lx + 26}px;top:${card.y + 172}px"><i>→</i> ${esc(config.copy.packets[1])}</div>
+    ${config.copy.packets.map((name, i) => `<div class="pk" style="left:${lx + 26}px;top:${card.y + 128 + i * 44}px"><i>→</i> ${esc(name)}</div>`).join('')}
     ${computer(p, { cx: lx, top, h: 300 }, result)}
     <div class="top"><img src="${icon}"><b>${esc(member.title)}</b></div>
     <h1>${esc(config.copy.headline[locale]).replace('，', '，<br>')}</h1>
