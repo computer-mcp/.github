@@ -1,9 +1,9 @@
 # Maintenance
 
-These conventions apply to every Computer MCP repository. Each repository's
-`Documentation/Architecture/VersioningAndRelease.md`, or its README where it
-has none, owns that repository's own version and release rules; this file holds
-only what they share.
+These conventions apply to every Computer MCP repository.
+[VERSIONING.md](VERSIONING.md) owns shared version, tag, release-record, plugin
+compatibility and dependency rules. Each repository owns its version sources,
+release procedure and written exceptions.
 
 ## Branches and changes
 
@@ -11,7 +11,7 @@ only what they share.
   MCP Swift SDK fork's default branch is its maintained release branch.
 - Changes land through pull requests with passing checks and are squash merged.
   Merged branches are deleted automatically.
-- Commits and tags are signed.
+- Commits are signed.
 - Each public repository enforces these rules with a `default branch` ruleset
   that has no bypass: it blocks deletion and force pushes, requires signed
   commits, and accepts only squash-merged pull requests whose required checks
@@ -28,28 +28,6 @@ only what they share.
   pull request opened with the workflow token waits for manual approval before
   its checks run.
 
-## Versions
-
-Versions follow [Semantic Versioning 2.0.0](https://semver.org/):
-
-- While a component is `0.x`, fixes increment the patch number; new
-  capabilities and incompatible changes increment the minor number.
-- Prereleases use `-alpha.N`, `-beta.N` and `-rc.N`.
-- `1.0.0` marks a stable public interface; from then on, incompatible changes
-  increment the major number.
-- Documentation, CI and cleanup changes alone do not require a release.
-
-## Tags and release records
-
-- New tags are signed annotated `vX.Y.Z` tags. The MCP Swift SDK fork tags
-  `X.Y.Z-computer-mcp.N`. Published tags and release assets are never moved or
-  replaced; a later fix ships as a new version.
-- The GitHub Release is the formal record. Each releasing repository keeps a
-  `CHANGELOG.md` with an `## Unreleased` section and
-  `## X.Y.Z — YYYY-MM-DD` sections.
-- Per-version process files are not committed. Release notes and reports are
-  rendered from the changelog and version-independent templates.
-
 ## Licenses
 
 - The App, the plugins and the website use the Functional Source License 1.1
@@ -64,9 +42,8 @@ Versions follow [Semantic Versioning 2.0.0](https://semver.org/):
 
 ## Plugins
 
-Each plugin declares `minimum_host` in `computer-mcp-plugin.toml`. After a
-release, its `notify-catalog.yml` workflow asks the website to refresh the
-plugin catalog through the Computer MCP Release Notifier GitHub App.
+After a plugin release, its `notify-catalog.yml` workflow asks the website to
+refresh the plugin catalog through the Computer MCP Release Notifier GitHub App.
 
 ## GitHub settings
 

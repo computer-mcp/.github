@@ -16,4 +16,4 @@ Do not include credentials, tokens, personal data or private tool output in
 issues, pull requests, logs or test fixtures. Contributions are provided under
 the license of the repository they are made to.
 
-See [MAINTENANCE.md](MAINTENANCE.md) for versioning, tags and release records.
+See [VERSIONING.md](VERSIONING.md) for versioning, tags and release records.

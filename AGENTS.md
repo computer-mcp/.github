@@ -70,6 +70,8 @@ Use this check:
 
 - For the public organization entry point, edit `profile/README.md`.
 - For conventions shared by every repository, read `MAINTENANCE.md`.
+- Before changing shared version, plugin compatibility or dependency rules,
+  read `VERSIONING.md`.
 - For repository settings, GitHub Apps and Actions credentials, change
   `MAINTENANCE.md` with the setting, then run `python3 Scripts/check-settings.py`.
 - For visual identity, read `DESIGN.md`; the renderer, its configuration and
@@ -88,8 +90,9 @@ Use this check:
 - `AGENTS.md` is the agent guide: first-principles guardrails, task
   route, authority boundaries, and boundary guardrails.
 - `README.md` indexes scope, brand rendering and delivery.
-- `MAINTENANCE.md` is current truth for cross-repository conventions; each
-  repository owns its own version and release rules.
+- `MAINTENANCE.md` is current truth for cross-repository operating conventions.
+  `VERSIONING.md` owns shared version and dependency rules; each repository
+  owns its version sources, release procedure and written exceptions.
 - `DESIGN.md` and `Brand/config.json` are current truth for visual identity.
   `Brand/Exports/` and `profile/brand/` are rendered from them.
 - The main repository's ProductIdentity is current truth for product meaning.

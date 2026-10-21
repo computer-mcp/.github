@@ -8,6 +8,8 @@ conventions every Computer MCP repository shares.
   (`CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `GOVERNANCE.md`, `SECURITY.md`,
   `SUPPORT.md`, `.github/ISSUE_TEMPLATE/` and the pull request template) apply
   to every repository without its own version.
+- [VERSIONING.md](VERSIONING.md) holds shared version, tag, release-record,
+  plugin compatibility and dependency rules.
 - `Scripts/check-settings.py` compares the organization's live GitHub settings,
   Apps and Actions credentials with `MAINTENANCE.md`.
 - `DESIGN.md` is the design system: tokens, components, the icon family and
@@ -17,6 +19,10 @@ conventions every Computer MCP repository shares.
   `manifest.json`.
 - `.github/workflows/brand-check.yml` is the reusable workflow each repository
   calls to verify its brand lock.
+- [PluginRuntime/](PluginRuntime/README.md) holds the shared Python plugin
+  runtime and adoption instructions. `Scripts/plugin-runtime.py` syncs and
+  checks copies; `.github/workflows/plugin-runtime.yml` verifies consumers
+  against the runtime digest fixed by their workflow pin.
 
 Product meaning and copy belong to the main repository's
 [ProductIdentity](https://github.com/computer-mcp/computer-mcp/blob/master/Documentation/Architecture/ProductIdentity.md).
