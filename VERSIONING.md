@@ -88,17 +88,37 @@ repository's default-branch `push` run of `.github/workflows/ci.yml` for the
 exact source commit. It selects the latest successful matching run and rechecks
 its latest attempt. The exact `ci_artifact` name selects one artifact
 created within that attempt, with a recorded and verified API digest. Outputs
-left from earlier attempts cannot supply a new release. Verification rebuilds
-the archives and requires byte equality with that CI artifact. The shared
-workflow's receipt records one source CI artifact and `reproduction: rebuild`.
+left from earlier attempts cannot supply a new release. The caller's build runs
+in a separate job with no repository permissions or secret inputs and uploads
+its archives as an Actions artifact. A fresh verification runner executes only
+the pinned helper, reads the source manifest as data, checks both artifact
+downloads against their API digests and requires byte equality between the
+build and CI archives. The shared workflow's receipt records one source CI
+artifact and `reproduction: rebuild`.
+
+Plugin repositories must enable GitHub release immutability. Before any Release
+write, the workflow verifies that repository setting through the API and
+refuses publication if it is disabled or cannot be verified. The server rejects
+asset mutations after publication, including when another publisher makes a
+draft public between this workflow's draft precheck and mutation request.
 
 Publication creates or resumes a commit-bound draft. It uploads the receipt
 first, then the archives, then `SHA256SUMS`, and checks the complete asset set,
 sizes and API digests before making the draft public. The uploaded receipt
 freezes the CI run, attempt, artifact IDs and digests, and release workflow
-reference and commit. Recovery reuses that receipt and the recorded artifacts;
-it does not select a newer CI run or rewrite provenance after a CI rerun or
+reference and commit. Recovery reuses that receipt and the recorded artifacts.
+It validates the recorded historical run attempt through the API: this
+repository's default-branch `push` run of `.github/workflows/ci.yml`, completed
+successfully at the exact source commit, with the artifact created within that
+attempt. An unavailable or invalid recorded attempt fails recovery. Recovery
+does not select a newer CI run or rewrite provenance after a CI rerun or
 workflow update.
+
+Verification passes the exact uploaded bundle artifact ID and every release
+file's SHA-256 through job outputs. Publication downloads that ID and recomputes
+every digest before any Release write. Retrying only a failed publish job uses
+the original bundle and verification outputs even though the run attempt has
+changed.
 
 An interrupted asset in GitHub's `starter` state may be deleted and uploaded
 again only while the Release is still a draft. Completed assets must have

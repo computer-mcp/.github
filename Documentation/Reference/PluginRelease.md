@@ -46,11 +46,25 @@ jobs:
 
 `notify-catalog.yml` is the caller repository's existing reusable notification
 workflow. It receives the catalog App private key; the release workflow has no
-secret inputs. Its `verify` job receives only `contents: read` and
-`actions: read`; its `publish` job receives only `contents: write`. The caller
-grants the permission ceiling needed by both jobs. Verification executes the
-build command without passing its GitHub token into the build environment.
-Publication does not check out the caller or run its build command.
+secret inputs. The caller grants the permission ceiling needed by these jobs:
+
+| Job | Permissions | Data flow |
+| --- | --- | --- |
+| `source` | `contents: read`, `actions: read` | Load the pinned helper, resolve the source commit and upload the helper |
+| `build` | `{}` | Check out that commit, execute the caller's build and upload its archives |
+| `verify` | `contents: read`, `actions: read` | On a fresh runner, check the helper pin, read the source manifest and both artifacts as data, compare archive bytes and assemble the bundle |
+| `publish` | `contents: write` | Download the verified bundle by ID, recompute every digest and publish |
+
+The build job receives no secrets, does not persist checkout credentials and
+has no access to the verification runner's files or job outputs. Only its
+archive artifact ID crosses into verification. Verification and publication
+execute only the pinned helper; neither checks out or executes caller code.
+
+Plugin repositories must enable GitHub release immutability in their repository
+settings before publishing. The helper checks `/repos/{owner}/{repo}/immutable-releases`
+through the API before any Release write and fails clearly unless it reports
+`enabled: true`. Server enforcement protects public assets even if another
+publisher makes the draft public after a draft precheck.
 
 | Input | Contract |
 | --- | --- |
@@ -58,7 +72,7 @@ Publication does not check out the caller or run its build command.
 | `publish` | Boolean, default `false` |
 | `build` | Required shell command run at the source checkout; a quoted absolute output-directory argument is appended. It must create that directory with only the plugin ZIP archives |
 | `ci_artifact` | Required exact artifact name from `ci.yml`; `${commit}` expands to the resolved full commit SHA. For matrix jobs, choose one exact matrix member |
-| `runner` | Verification runner, default `ubuntu-24.04`; publication runs on `ubuntu-24.04`. Python 3.13 is supplied for verification |
+| `runner` | Build runner, default `ubuntu-24.04`; source resolution, verification and publication use fresh `ubuntu-24.04` runners. Python 3.13 is supplied for source resolution, building and verification |
 
 | Output | Contract |
 | --- | --- |
@@ -70,9 +84,10 @@ The release workflow must be pinned by its full commit SHA. It loads its helper
 from that immutable workflow revision, found in the caller run's
 `referenced_workflows` metadata. An embedded SHA-256 checks the helper both
 before verification and before publication; caller code cannot supply an
-executable publisher. The receipt digest passed between jobs binds the bundle
-to verification, and publication checks the archive hashes and `SHA256SUMS`
-before any Release write.
+executable publisher. Verification passes the uploaded bundle's exact artifact
+ID and a SHA-256 map for all release files through job outputs. Publication
+recomputes and compares every file digest, validates the receipt and checks
+`SHA256SUMS` before any Release write.
 
 ## Run and recover
 
@@ -92,11 +107,21 @@ before any Release write.
    verifies all assets, and publishes. The dependent job requests catalog
    reconciliation only after `published` is `true`.
 
-A failed publication can be rerun. A complete receipt in a draft freezes its
-provenance: verification downloads the recorded CI artifact by ID and checks its
-digest, rebuilds against those bytes, and reproduces the same receipt and
-checksums. A new CI attempt or a new release workflow pin does not change it.
-If receipt upload itself was incomplete, no source has been frozen yet.
+A failed publication can be retried with **Re-run failed jobs**. If verification
+already succeeded, the publish job downloads the same bundle artifact ID and
+uses the saved digest outputs; it does not derive a new artifact name from the
+retry's run attempt.
+
+When verification runs again, a complete receipt in a draft freezes its
+provenance. Verification validates the recorded historical CI run attempt
+through the API: `.github/workflows/ci.yml`, event `push`, the repository's
+default branch, status `completed`, conclusion `success` and the exact source
+commit. It downloads the recorded artifact by ID, checks its digest and creation
+within that attempt, compares it against the isolated build and reproduces the
+same receipt and checksums. It refuses an invalid or unavailable recorded
+attempt. A new CI attempt or a new release workflow pin does not change frozen
+provenance. If receipt upload itself was incomplete, no source has been frozen
+yet.
 
 Missing assets are uploaded; matching completed assets are retained. Only
 expected `starter` assets in a draft are removed and uploaded again. A completed
@@ -118,7 +143,10 @@ Release logic lives in `Scripts/plugin_release.py`, behind a four-operation
 GitHub API interface. The offline tests use an in-memory API and inject failures
 before and after draft creation, every asset upload, starter deletion and
 publication. They also exercise provenance recovery, immutable public releases,
-source checks, archive comparison and the workflow's helper boundary.
+source checks, archive comparison, malicious build isolation, publish-only
+retries and the workflow's helper boundary. The fake server rejects mutations
+of public releases when immutability is enabled, including visibility changes
+between draft prechecks and mutation requests.
 
 When changing the helper, update `PLUGIN_RELEASE_SHA256` in the workflow to its
 SHA-256. The repository CI runs the offline suite and verifies that digest:

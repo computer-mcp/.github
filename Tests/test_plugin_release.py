@@ -1,7 +1,7 @@
 """Offline release verification, publication, interruption and recovery tests."""
 
 import base64
-from contextlib import redirect_stdout
+from contextlib import redirect_stderr, redirect_stdout
 import copy
 import importlib.util
 import io
@@ -11,8 +11,10 @@ from pathlib import Path
 import re
 import shlex
 import stat
+import subprocess
 import sys
 import tempfile
+import textwrap
 import unittest
 from unittest.mock import patch
 from urllib.parse import parse_qs, urlsplit
@@ -35,6 +37,14 @@ TAG = "v0.2.0"
 MANIFEST = b'id = "widget"\nversion = "0.2.0"\nplugin_api = 1\n[compatibility]\nminimum_host = "0.1.0"\n'
 
 
+def workflow_job(name):
+    return re.search(r"(?ms)^  " + name + r":\n(.*?)(?=^  [a-z_]+:\n|\Z)", WORKFLOW.read_text())[1]
+
+
+def python_step(job):
+    return textwrap.dedent(workflow_job(job).split("<<'PY'\n", 1)[1].split("\n          PY", 1)[0])
+
+
 def zip_bytes(files):
     output = io.BytesIO()
     with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_STORED) as archive:
@@ -52,7 +62,9 @@ class FakeGitHub:
     def __init__(self, archives):
         self.calls = []
         self.writes = []
+        self.manifest = MANIFEST
         self.runs = {10: self.run()}
+        self.attempts = {(10, 1): self.run()}
         self.artifacts = {}
         self.artifact_bytes = {}
         self.releases = {}
@@ -64,7 +76,9 @@ class FakeGitHub:
         self.tag_commit = COMMIT
         self.verified = True
         self.reason = "valid"
+        self.immutability = {"enabled": True, "enforced_by_owner": False}
         self.install_artifact(20, archives)
+        self.install_build_artifact(archives)
 
     def run(self, **changes):
         run = {"id": 10, "run_attempt": 1, "event": "push", "head_branch": "main",
@@ -87,7 +101,14 @@ class FakeGitHub:
     def rerun_ci(self, archives):
         self.runs[10] = self.run(run_attempt=2, run_started_at="2026-01-02T00:00:00Z",
                                 updated_at="2026-01-02T00:10:00Z")
+        self.attempts[10, 2] = copy.deepcopy(self.runs[10])
         self.install_artifact(21, archives, created_at="2026-01-02T00:05:00Z")
+
+    def install_build_artifact(self, archives):
+        data = zip_bytes(archives)
+        self.artifacts[30] = {"id": 30, "name": "plugin-build-12-1", "expired": False,
+                              "digest": "sha256:" + release.sha256(data), "workflow_run": {"id": 12}}
+        self.artifact_bytes[30] = data
 
     def _record(self, method, path):
         self.calls.append((method, path))
@@ -98,6 +119,11 @@ class FakeGitHub:
         route = self._record("GET", path)
         if route == "":
             result = {"default_branch": "main"}
+        elif route == "/immutable-releases":
+            result = self.immutability
+        elif route.startswith("/contents/computer-mcp-plugin.toml?"):
+            assert parse_qs(urlsplit(route).query) == {"ref": [self.tag_commit]}
+            result = {"type": "file", "encoding": "base64", "content": base64.b64encode(self.manifest).decode()}
         elif route.startswith("/git/ref/tags/"):
             result = {"object": {"type": self.tag_type, "sha": "c" * 40}}
         elif route.startswith("/git/tags/"):
@@ -106,7 +132,15 @@ class FakeGitHub:
         elif route.startswith("/commits/"):
             result = {"sha": COMMIT}
         elif route.startswith("/actions/runs/"):
-            result = self.runs[int(route.split("/")[3])]
+            parts = route.split("/")
+            run_id = int(parts[3])
+            if "/attempts/" in route:
+                key = run_id, int(parts[5])
+                if key not in self.attempts:
+                    raise release.APIError(404, path)
+                result = self.attempts[key]
+            else:
+                result = self.runs[run_id]
         elif route.startswith("/actions/artifacts/"):
             artifact_id = int(route.split("/")[3])
             if artifact_id not in self.artifacts:
@@ -175,6 +209,11 @@ class FakeGitHub:
         else:
             raise AssertionError((method, route))
         self._failure(step, "before")
+        if step != "draft":
+            release_id = (self.assets[int(route.split("/")[3])]["release_id"] if step == "delete"
+                          else int(route.split("/")[2]))
+            if self.immutability.get("enabled") is True and not self.releases[release_id]["draft"]:
+                raise release.APIError(422, path)
         self.writes.append((step, copy.deepcopy(data)))
         if step == "draft":
             result = self.add_draft()
@@ -184,13 +223,11 @@ class FakeGitHub:
             result.update(data)
         elif step == "delete":
             asset_id = int(route.split("/")[3])
-            assert self.releases[self.assets[asset_id]["release_id"]]["draft"]
             del self.assets[asset_id]
             del self.asset_bytes[asset_id]
             result = None
         else:
             release_id = int(route.split("/")[2])
-            assert self.releases[release_id]["draft"]
             assert not any(item["name"] == step for item in self.assets.values())
             result = self.add_asset(step, data, release_id=release_id)
         self._failure(step, "after")
@@ -205,16 +242,15 @@ class ReleaseTests(unittest.TestCase):
         self.checkout = self.root / "checkout"
         self.checkout.mkdir()
         self.output = self.root / "assets"
-        self.build_output = self.root / "build"
         self.set_archives(MANIFEST, {"widget.zip": zip_bytes({"computer-mcp-plugin.toml": MANIFEST, "bin/tool": b"owned"})})
         self.api = FakeGitHub(self.archives)
-        self.head = patch.object(release.subprocess, "check_output", return_value=COMMIT + "\n")
-        self.head.start()
-        self.addCleanup(self.head.stop)
 
     def set_archives(self, manifest, archives):
         self.manifest = manifest
         self.archives = archives
+        if hasattr(self, "api"):
+            self.api.manifest = manifest
+            self.api.install_build_artifact(archives)
         (self.checkout / "computer-mcp-plugin.toml").write_bytes(manifest)
         (self.checkout / "build.py").write_text(
             "import base64, os, sys\nfrom pathlib import Path\n"
@@ -225,16 +261,17 @@ class ReleaseTests(unittest.TestCase):
 
     def verify(self, **overrides):
         arguments = dict(api=self.api, repository=REPOSITORY, ref=TAG, publish=True,
-                         checkout=self.checkout, build=shlex.quote(sys.executable) + " build.py",
+                         source_commit=COMMIT, build_artifact_id=30, run_id=12,
                          ci_artifact="widget-${commit}-3.13", workflow_ref=WORKFLOW_REF,
-                         workflow_sha=WORKFLOW_SHA, output=self.output, build_output=self.build_output)
+                         workflow_sha=WORKFLOW_SHA, output=self.output)
         arguments.update(overrides)
-        with patch.dict(os.environ, {"GH_TOKEN": "fake", "GITHUB_TOKEN": "fake"}):
-            return release.verify(**arguments)
+        self.api.manifest = (self.checkout / "computer-mcp-plugin.toml").read_bytes()
+        result = release.verify(**arguments)
+        self.asset_digests = result["asset_digests"]
+        return result
 
     def publish(self):
-        return release.publish_bundle(self.api, REPOSITORY, self.output,
-                                      release.sha256((self.output / release.RECEIPT).read_bytes()))
+        return release.publish_bundle(self.api, REPOSITORY, self.output, self.asset_digests)
 
     def files(self):
         return {path.name: path.read_bytes() for path in self.output.iterdir()}
@@ -245,13 +282,46 @@ class ReleaseTests(unittest.TestCase):
         self.api.add_asset(release.RECEIPT, (self.output / release.RECEIPT).read_bytes())
 
     def verify_again(self, **changes):
-        return self.verify(output=self.root / "recovered", build_output=self.root / "rebuilt", **changes)
+        return self.verify(output=self.root / "recovered", **changes)
 
     def assert_no_writes(self, function, pattern):
         before = copy.deepcopy(self.api.writes)
         with self.assertRaisesRegex(release.ReleaseError, pattern):
             function()
         self.assertEqual(self.api.writes, before)
+
+    def run_build(self, command=None):
+        runner = self.root / "build-runner"
+        runner.mkdir()
+        script = textwrap.dedent(re.search(r"        run: \|\n((?:          .*\n)+)", workflow_job("build"))[1])
+        environment = {"PATH": os.environ["PATH"], "RUNNER_TEMP": str(runner),
+                       "GITHUB_OUTPUT": str(runner / "output"), "GITHUB_ENV": str(runner / "env"),
+                       "GITHUB_PATH": str(runner / "path"),
+                       "RELEASE_BUILD": command or shlex.quote(sys.executable) + " build.py"}
+        subprocess.run(["bash", "-euo", "pipefail", "-c", script], cwd=self.checkout, env=environment, check=True)
+        output = runner / "plugin-release-build"
+        self.api.install_build_artifact({path.name: path.read_bytes() for path in output.iterdir()})
+        return runner
+
+    def run_helper_step(self, job, runner, environment):
+        helper = runner / "plugin-release/plugin_release.py"
+
+        def run_pinned(arguments, check):
+            self.assertTrue(check)
+            self.assertEqual(arguments[:3], [sys.executable, "-I", str(helper)])
+            with patch.object(sys, "argv", arguments[2:]), patch.object(release, "GitHub", return_value=self.api):
+                status = release.main()
+            if status:
+                raise subprocess.CalledProcessError(status, arguments)
+
+        output = runner / "output"
+        with patch.dict(os.environ, {"RUNNER_TEMP": str(runner), "GH_TOKEN": "fake",
+                                     "GH_REPOSITORY": REPOSITORY, "GITHUB_OUTPUT": str(output),
+                                     "PLUGIN_RELEASE_SHA256": release.sha256(SCRIPT.read_bytes()), **environment}), \
+                patch.object(subprocess, "run", side_effect=run_pinned), \
+                redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
+            exec(compile(python_step(job), str(WORKFLOW), "exec"), {})
+        return output.read_text()
 
     def test_first_publication_order_contents_checksums_and_notes(self):
         outputs = self.verify()
@@ -270,7 +340,7 @@ class ReleaseTests(unittest.TestCase):
                                         "artifacts": [{"id": 20, "digest": self.api.artifacts[20]["digest"]}]})
         self.assertEqual(receipt["workflow"], {"ref": WORKFLOW_REF, "sha": WORKFLOW_SHA})
         self.assertEqual(receipt["reproduction"], "rebuild")
-        self.assertEqual(outputs["receipt_sha256"], release.sha256(files[release.RECEIPT]))
+        self.assertEqual(json.loads(outputs["asset_digests"]), {name: release.sha256(data) for name, data in files.items()})
         self.assertEqual(files[release.SUMS], release.checksums({name: data for name, data in files.items()
                                                               if name != release.SUMS}))
         self.assertEqual({item["name"]: self.api.asset_bytes[item["id"]] for item in self.api.assets.values()}, files)
@@ -292,6 +362,44 @@ class ReleaseTests(unittest.TestCase):
                     self.assertEqual({item["name"]: self.api.asset_bytes[item["id"]]
                                       for item in self.api.assets.values()}, expected)
 
+    def test_publish_only_retry_downloads_the_original_artifact_id_on_a_fresh_runner(self):
+        self.verify()
+        expected = self.files()
+        artifact_id = "901"
+        self.api.artifact_bytes[int(artifact_id)] = zip_bytes({"plugin_release.py": SCRIPT.read_bytes(),
+            **{"assets/" + name: data for name, data in expected.items()}})
+        job = workflow_job("publish")
+        download_id = re.search(r"artifact-ids: (.+)", job)[1]
+        digests = re.search(r"RELEASE_ASSET_DIGESTS: (.+)", job)[1]
+        self.assertIn("artifact_id: ${{ steps.upload.outputs.artifact-id }}", workflow_job("verify"))
+
+        def attempt(number):
+            context = {"github.run_id": "12", "github.run_attempt": str(number),
+                       "needs.verify.outputs.artifact_id": artifact_id,
+                       "needs.verify.outputs.asset_digests": self.asset_digests}
+
+            def evaluate(value):
+                return re.sub(r"\$\{\{ (.*?) \}\}", lambda match: context[match[1]], value)
+
+            directory = self.root / f"publish-attempt-{number}"
+            root = directory / "plugin-release"
+            root.mkdir(parents=True)
+            data = self.api.download(API_ROOT + "/actions/artifacts/" + evaluate(download_id) + "/zip")
+            for name, content in release.zip_entries(data).items():
+                path = root / name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(content)
+
+            return self.run_helper_step("publish", directory, {"RELEASE_ASSET_DIGESTS": evaluate(digests)})
+
+        self.api.fail = (release.SUMS, "before")
+        with self.assertRaises(subprocess.CalledProcessError):
+            attempt(1)
+        self.assertIn("published=true", attempt(2))
+        self.assertEqual({item["name"]: self.api.asset_bytes[item["id"]]
+                          for item in self.api.assets.values()}, expected)
+        self.assertEqual(self.api.calls.count(("DOWNLOAD", API_ROOT + "/actions/artifacts/901/zip")), 2)
+
     def test_partial_upload_recovery_freezes_ci_attempt_artifact_and_workflow(self):
         self.verify()
         original = self.files()
@@ -304,11 +412,55 @@ class ReleaseTests(unittest.TestCase):
         self.verify_again(workflow_ref=release.WORKFLOW + "d" * 40, workflow_sha="d" * 40)
         recovered = {path.name: path.read_bytes() for path in (self.root / "recovered").iterdir()}
         self.assertEqual(recovered, original)
-        self.assertFalse(any("/actions/runs/" in path or "/workflows/" in path for _, path in self.api.calls))
+        self.assertIn(("GET", API_ROOT + "/actions/runs/10/attempts/1"), self.api.calls)
+        self.assertFalse(any("/workflows/" in path or path.endswith("/actions/runs/10")
+                             or "/attempts/2" in path for _, path in self.api.calls))
         self.assertIn(("DOWNLOAD", API_ROOT + "/actions/artifacts/20/zip"), self.api.calls)
         self.output = self.root / "recovered"
         self.publish()
         self.assertEqual([name for name, _ in self.api.writes].count(release.RECEIPT), 1)
+
+    def test_recovery_accepts_recorded_success_when_latest_attempt_and_newer_run_fail(self):
+        self.frozen_draft()
+        expected = self.files()
+        self.api.rerun_ci({"widget.zip": b"newer bytes"})
+        self.api.runs[10]["conclusion"] = "failure"
+        self.api.runs[11] = self.api.run(id=11, event="workflow_dispatch", conclusion="failure")
+        self.api.calls.clear()
+        self.verify_again()
+        self.assertEqual({path.name: path.read_bytes() for path in (self.root / "recovered").iterdir()}, expected)
+        self.assertIn(("GET", API_ROOT + "/actions/runs/10/attempts/1"), self.api.calls)
+        self.assertFalse(any("/workflows/" in path or "/attempts/2" in path or "/actions/runs/11" in path
+                             for _, path in self.api.calls))
+
+    def test_recovery_refuses_invalid_or_unavailable_recorded_attempt(self):
+        self.frozen_draft()
+        for field, value in (("event", "workflow_dispatch"), ("head_branch", "other"),
+                             ("head_sha", "d" * 40), ("path", ".github/workflows/other.yml"),
+                             ("head_repository", {"full_name": "fork/plugin-widget"}),
+                             ("conclusion", "failure"), ("conclusion", "cancelled"),
+                             ("status", "in_progress"), ("id", 99), ("run_attempt", 99)):
+            with self.subTest(field=field, value=value):
+                with patch.dict(self.api.attempts[10, 1], {field: value}):
+                    self.assert_no_writes(self.verify_again, "CI must|Recorded CI attempt")
+        del self.api.attempts[10, 1]
+        self.assert_no_writes(self.verify_again, "Cannot validate recorded CI attempt.*404")
+
+    def test_recovery_refuses_an_artifact_outside_the_recorded_attempt(self):
+        self.frozen_draft()
+        self.api.artifacts[20]["created_at"] = "2026-01-02T00:05:00Z"
+        self.assert_no_writes(self.verify_again, "not created within the recorded CI attempt")
+
+    def test_recovery_refuses_a_nonexistent_attempt_recorded_in_the_receipt(self):
+        self.frozen_draft()
+        asset = next(item for item in self.api.assets.values() if item["name"] == release.RECEIPT)
+        receipt = json.loads(self.api.asset_bytes[asset["id"]])
+        receipt["ci"]["run_attempt"] = 99
+        data = release.canonical(receipt)
+        self.api.asset_bytes[asset["id"]] = data
+        asset.update(size=len(data), digest="sha256:" + release.sha256(data))
+        self.assert_no_writes(self.verify_again, "Cannot validate recorded CI attempt.*404")
+        self.assertIn(("GET", API_ROOT + "/actions/runs/10/attempts/99"), self.api.calls)
 
     def test_starter_assets_at_each_upload_position_are_deleted_and_replaced(self):
         self.verify()
@@ -401,10 +553,10 @@ class ReleaseTests(unittest.TestCase):
         self.verify()
         self.publish()
         writes = copy.deepcopy(self.api.writes)
-        self.api.artifacts.clear()
+        del self.api.artifacts[20]
         self.api.calls.clear()
         self.verify_again()
-        self.assertFalse(any("/actions/" in path for _, path in self.api.calls))
+        self.assertFalse(any("/actions/runs/" in path or "/actions/artifacts/20" in path for _, path in self.api.calls))
         self.output = self.root / "recovered"
         self.assertEqual(self.publish()["published"], "true")
         self.assertEqual(self.api.writes, writes)
@@ -443,6 +595,58 @@ class ReleaseTests(unittest.TestCase):
 
         with patch.object(self.api, "get", side_effect=get):
             self.assert_no_writes(self.publish, "became public")
+
+    def test_publication_requires_server_enforced_release_immutability_before_any_write(self):
+        self.verify()
+        for enabled in (False, None, "true", 1):
+            with self.subTest(enabled=enabled):
+                self.api.immutability["enabled"] = enabled
+                self.assert_no_writes(self.publish, "Enable release immutability.*before publishing")
+        self.assertEqual(self.api.releases, {})
+
+    def test_immutability_api_failure_is_closed_and_explained(self):
+        self.verify()
+        original = self.api.get
+
+        def get(path):
+            if path.endswith("/immutable-releases"):
+                raise release.APIError(403, path)
+            return original(path)
+
+        with patch.object(self.api, "get", side_effect=get):
+            self.assert_no_writes(self.publish, "Cannot verify repository release immutability.*403")
+
+    def test_server_refuses_mutation_after_the_draft_precheck_and_cli_stops_writing(self):
+        self.verify()
+        for mutation in ("DELETE", "POST", "PATCH"):
+            with self.subTest(mutation=mutation):
+                self.api = FakeGitHub(self.archives)
+                self.api.add_draft()
+                self.api.add_asset(release.RECEIPT, self.files()[release.RECEIPT])
+                if mutation == "DELETE":
+                    self.api.add_asset("widget.zip", state="starter")
+                elif mutation == "PATCH":
+                    for name in ("widget.zip", release.SUMS):
+                        self.api.add_asset(name, self.files()[name])
+                assets = copy.deepcopy(self.api.assets)
+                original = self.api.send
+
+                def send(method, path, *arguments):
+                    self.assertEqual(method, mutation)
+                    self.api.releases[50]["draft"] = False
+                    return original(method, path, *arguments)
+
+                stderr = io.StringIO()
+                arguments = [str(SCRIPT), "publish", "--repository", REPOSITORY, "--directory", str(self.output),
+                             "--asset-digests", self.asset_digests]
+                with patch.object(self.api, "send", side_effect=send), \
+                        patch.object(release, "GitHub", return_value=self.api), patch.object(sys, "argv", arguments), \
+                        patch.dict(os.environ, {"GH_TOKEN": "fake"}), redirect_stderr(stderr):
+                    self.assertEqual(release.main(), 1)
+                self.assertIn("GitHub API returned 422", stderr.getvalue())
+                self.assertEqual(self.api.writes, [])
+                self.assertEqual(self.api.assets, assets)
+                self.assertEqual(self.api.calls[-1][0], mutation)
 
     def test_upload_api_digest_mismatch_leaves_draft_unpublished(self):
         self.verify()
@@ -502,17 +706,17 @@ class ReleaseTests(unittest.TestCase):
     def test_cli_dry_run_reports_publication_conditions_and_outputs(self):
         output = self.root / "github-output"
         arguments = [str(SCRIPT), "verify", "--repository", REPOSITORY, "--ref", COMMIT,
-                     "--publish", "false", "--checkout", str(self.checkout), "--build",
-                     shlex.quote(sys.executable) + " build.py", "--ci-artifact", "widget-${commit}-3.13",
+                     "--publish", "false", "--commit", COMMIT, "--build-artifact-id", "30", "--run-id", "12",
+                     "--ci-artifact", "widget-${commit}-3.13",
                      "--workflow-ref", WORKFLOW_REF, "--workflow-sha", WORKFLOW_SHA,
-                     "--output", str(self.output), "--build-output", str(self.build_output)]
+                     "--output", str(self.output)]
         stdout = io.StringIO()
         with patch.object(release, "GitHub", return_value=self.api), patch.object(sys, "argv", arguments), \
                 patch.dict(os.environ, {"GH_TOKEN": "fake", "GITHUB_OUTPUT": str(output)}), redirect_stdout(stdout):
             self.assertEqual(release.main(), 0)
         self.assertIn("signed annotated v0.2.0", stdout.getvalue())
         self.assertIn("manual acceptance", stdout.getvalue())
-        self.assertIn("commit=" + COMMIT + "\ntag=\nreceipt_sha256=", output.read_text())
+        self.assertIn("commit=" + COMMIT + "\ntag=\nasset_digests=", output.read_text())
         self.assertEqual(self.api.writes, [])
 
     def test_dry_run_tag_uses_identical_assembly_without_writes(self):
@@ -567,10 +771,72 @@ class ReleaseTests(unittest.TestCase):
                 (self.checkout / "computer-mcp-plugin.toml").write_bytes(MANIFEST.replace(b"plugin_api = 1\n", replacement))
                 self.assert_no_writes(self.verify, "plugin_api")
 
-    def test_wrong_checkout_commit_is_refused_before_build(self):
-        with patch.object(release.subprocess, "check_output", return_value="d" * 40):
-            self.assert_no_writes(self.verify, "Checkout differs")
-        self.assertFalse(self.build_output.exists())
+    def test_verification_reads_source_at_the_resolved_commit_without_running_caller_code(self):
+        with patch.object(subprocess, "run", side_effect=AssertionError("Verification executed a command")):
+            self.verify()
+        self.assertIn(("GET", API_ROOT + "/contents/computer-mcp-plugin.toml?ref=" + COMMIT), self.api.calls)
+
+    def test_verification_refuses_a_ref_that_moved_after_source_resolution(self):
+        self.api.tag_commit = "d" * 40
+        self.assert_no_writes(self.verify, "ref moved after source resolution")
+
+    def test_malicious_build_cannot_forge_the_verification_bundle_or_its_output_digests(self):
+        forged_archive = b"forged archive, not a ZIP"
+        info, _ = release.manifest_info(release.tomllib.loads(MANIFEST.decode()), TAG)
+        receipt = dict(info, schema=1, tag=TAG, commit=COMMIT, reproduction="rebuild",
+                       archives=[{"name": "widget.zip", "size": len(forged_archive),
+                                  "sha256": release.sha256(forged_archive)}],
+                       ci={"run_id": 10, "run_attempt": 1,
+                           "artifacts": [{"id": 20, "digest": self.api.artifacts[20]["digest"]}]},
+                       workflow={"ref": WORKFLOW_REF, "sha": WORKFLOW_SHA})
+        forged = release.assemble(receipt, {"widget.zip": forged_archive})
+        forged_digests = json.dumps({name: release.sha256(data) for name, data in forged.items()}, sort_keys=True)
+        with (self.checkout / "build.py").open("a") as script:
+            script.write("\nroot = Path(os.environ['RUNNER_TEMP']) / 'plugin-release'\n"
+                         "(root / 'assets').mkdir(parents=True)\n")
+            for name, data in forged.items():
+                script.write(f"(root / 'assets' / {name!r}).write_bytes(base64.b64decode({base64.b64encode(data)!r}))\n")
+            script.write("(root / 'plugin_release.py').write_text('raise SystemExit(99)')\n" +
+                         f"Path(os.environ['GITHUB_OUTPUT']).write_text({'asset_digests=' + forged_digests + chr(10)!r})\n" +
+                         f"Path(os.environ['GITHUB_ENV']).write_text({'RELEASE_ASSET_DIGESTS=' + forged_digests + chr(10)!r})\n")
+        build_runner = self.run_build()
+        self.assertEqual((build_runner / "plugin-release/assets/widget.zip").read_bytes(), forged_archive)
+        self.assertIn(forged_digests, (build_runner / "output").read_text())
+        verify_runner = self.root / "verify-runner"
+        root = verify_runner / "plugin-release"
+        root.mkdir(parents=True)
+        (root / "plugin_release.py").write_bytes(SCRIPT.read_bytes())
+        self.output = root / "assets"
+        outputs = self.run_helper_step("verify", verify_runner, {
+            "RELEASE_REF": TAG, "RELEASE_PUBLISH": "true", "RELEASE_COMMIT": COMMIT,
+            "RELEASE_BUILD_ARTIFACT_ID": "30", "GH_RUN_ID": "12", "RELEASE_CI_ARTIFACT": "widget-${commit}-3.13",
+            "RELEASE_WORKFLOW_REF": WORKFLOW_REF, "RELEASE_WORKFLOW_SHA": WORKFLOW_SHA})
+        self.asset_digests = dict(line.split("=", 1) for line in outputs.splitlines())["asset_digests"]
+        self.assertNotEqual(json.loads(self.asset_digests), json.loads(forged_digests))
+        expected = self.files()
+        self.assertEqual(expected["widget.zip"], self.archives["widget.zip"])
+        self.publish()
+        self.assertEqual({item["name"]: self.api.asset_bytes[item["id"]]
+                          for item in self.api.assets.values()}, expected)
+
+    def test_build_failure_cannot_reach_verification_or_publication(self):
+        with self.assertRaises(subprocess.CalledProcessError):
+            self.run_build("false")
+        self.assertEqual(self.api.writes, [])
+        self.assertFalse(self.output.exists())
+
+    def test_build_artifact_from_another_run_or_expired_is_refused(self):
+        for changes in ({"workflow_run": {"id": 99}}, {"expired": True}, {"id": 99}):
+            with self.subTest(changes=changes), patch.dict(self.api.artifacts[30], changes):
+                self.assert_no_writes(self.verify, "available artifact from this release run")
+
+    def test_build_artifact_is_only_archive_data(self):
+        for extra in ("release-receipt.json", "SHA256SUMS", "plugin_release.py", "nested/widget.zip"):
+            with self.subTest(extra=extra):
+                self.api.install_build_artifact({**self.archives, extra: b"caller data"})
+                self.assert_no_writes(self.verify, "ZIP basenames")
+        self.api.install_build_artifact({"widget.zip": b"forged archive, not a ZIP"})
+        self.assert_no_writes(self.verify, "byte for byte")
 
     def test_authoritative_ci_ignores_other_event_branch_commit_workflow_or_repository(self):
         for field, value in (("event", "pull_request"), ("event", "workflow_dispatch"), ("head_branch", "other"),
@@ -610,7 +876,7 @@ class ReleaseTests(unittest.TestCase):
     def test_latest_attempt_excludes_artifacts_left_by_earlier_attempts(self):
         self.api.rerun_ci(self.archives)
         result = self.verify()
-        self.assertTrue(result["receipt_sha256"])
+        self.assertTrue(result["asset_digests"])
         receipt = json.loads((self.output / release.RECEIPT).read_bytes())
         self.assertEqual(receipt["ci"]["run_attempt"], 2)
         self.assertEqual(receipt["ci"]["artifacts"][0]["id"], 21)
@@ -646,12 +912,12 @@ class ReleaseTests(unittest.TestCase):
                     self.api.artifacts[20]["expired"] = True
                 self.assert_no_writes(self.verify, pattern)
 
-    def test_downloaded_ci_digest_mismatch_and_build_failure_are_read_only(self):
+    def test_downloaded_ci_and_build_artifact_digest_mismatches_are_read_only(self):
         self.api.artifact_bytes[20] += b"corrupt"
         self.assert_no_writes(self.verify, "digest mismatch")
         self.api = FakeGitHub(self.archives)
-        with self.assertRaises(release.subprocess.CalledProcessError):
-            self.verify(build="false")
+        self.api.artifact_bytes[30] += b"corrupt"
+        self.assert_no_writes(self.verify, "build artifact digest mismatch")
         self.assertEqual(self.api.writes, [])
         self.assertFalse(self.output.exists())
 
@@ -659,8 +925,7 @@ class ReleaseTests(unittest.TestCase):
         self.api.install_artifact(20, {"widget.zip": self.archives["widget.zip"] + b"different"})
         for publish in (True, False):
             with self.subTest(publish=publish):
-                self.assert_no_writes(lambda: self.verify(publish=publish, build_output=self.root / str(publish)),
-                                      "byte for byte")
+                self.assert_no_writes(lambda: self.verify(publish=publish), "byte for byte")
 
     def test_multiple_declared_archives_are_sorted_rebuilt_and_published(self):
         manifest = MANIFEST + b'[[compatibility.artifacts]]\nname = "z-arm64.zip"\n[[compatibility.artifacts]]\nname = "a-x86.zip"\n'
@@ -695,24 +960,30 @@ class ReleaseTests(unittest.TestCase):
     def test_bundle_tampering_is_refused_before_release_writes(self):
         self.verify()
         expected = self.files()
-        receipt_hash = release.sha256(expected[release.RECEIPT])
         for name in (release.RECEIPT, "widget.zip", release.SUMS, "extra.txt"):
             with self.subTest(name=name):
                 (self.output / name).write_bytes(expected.get(name, b"") + b"tampered")
-                self.assert_no_writes(lambda: release.publish_bundle(self.api, REPOSITORY, self.output, receipt_hash),
-                                      "differ|file set")
+                self.assert_no_writes(self.publish, "differ|file set")
                 if name in expected:
                     (self.output / name).write_bytes(expected[name])
                 else:
                     (self.output / name).unlink()
 
+    def test_a_self_consistent_forged_bundle_cannot_replace_verify_job_digests(self):
+        self.verify()
+        receipt = json.loads(self.files()[release.RECEIPT])
+        archive = b"forged archive, not a ZIP"
+        receipt["archives"][0].update(size=len(archive), sha256=release.sha256(archive))
+        forged = release.assemble(receipt, {"widget.zip": archive})
+        for name, data in forged.items():
+            (self.output / name).write_bytes(data)
+        self.assert_no_writes(self.publish, "verify job's digests")
+
     def test_symlink_in_bundle_is_refused_before_reading_its_target(self):
         self.verify()
-        data = (self.output / release.RECEIPT).read_bytes()
         (self.output / release.RECEIPT).unlink()
         (self.output / release.RECEIPT).symlink_to(self.root / "missing-target")
-        self.assert_no_writes(lambda: release.publish_bundle(self.api, REPOSITORY, self.output, release.sha256(data)),
-                              "file set")
+        self.assert_no_writes(self.publish, "file set")
 
     def test_invalid_frozen_receipt_or_source_is_rejected(self):
         self.frozen_draft()
@@ -777,32 +1048,43 @@ class WorkflowBoundaryTests(unittest.TestCase):
         uses = re.findall(r"uses: (\S+)", workflow)
         self.assertTrue(uses)
         self.assertTrue(all(re.fullmatch(r"[^@]+@[0-9a-f]{40}", use) for use in uses))
-        verify, publish = workflow.split("  verify:\n", 1)[1].split("  publish:\n", 1)
+        source, build, verify, publish = (workflow_job(name) for name in ("source", "build", "verify", "publish"))
+        self.assertIn("      contents: read\n      actions: read", source)
+        self.assertIn("    permissions: {}", build)
+        self.assertNotIn("GH_TOKEN", build)
+        self.assertNotIn("github.token", build)
+        self.assertNotIn("plugin-release.py", build)
+        self.assertIn("persist-credentials: false", build)
+        self.assertIn("needs: source", build)
+        self.assertIn("ref: ${{ needs.source.outputs.commit }}", build)
+        self.assertIn("RELEASE_BUILD: ${{ inputs.build }}", build)
+        self.assertEqual(workflow.count("inputs.build"), 1)
         self.assertIn("      contents: read\n      actions: read", verify)
+        self.assertIn("needs: [source, build]", verify)
+        self.assertIn("runs-on: ubuntu-24.04", verify)
+        self.assertNotIn("actions/checkout", verify)
+        self.assertNotIn("--build'", verify)
         self.assertIn("      contents: write", publish)
+        self.assertIn("needs: verify", publish)
         self.assertNotIn("actions: read", publish)
         self.assertNotIn("actions/checkout", publish)
         self.assertNotIn("secrets", workflow)
         self.assertNotIn("RELEASE_BUILD", publish)
 
-    def test_publish_bootstrap_rejects_modified_helper_without_executing_it(self):
-        workflow = WORKFLOW.read_text()
-        script = workflow.rsplit("<<'PY'\n", 1)[1].split("\n          PY", 1)[0]
-        import textwrap
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory) / "plugin-release"
-            root.mkdir()
-            marker = root / "executed"
-            (root / "plugin_release.py").write_text(f"from pathlib import Path\nPath({str(marker)!r}).touch()\n")
-            with patch.dict(os.environ, {"RUNNER_TEMP": directory, "PLUGIN_RELEASE_SHA256": release.sha256(SCRIPT.read_bytes())}):
-                with self.assertRaisesRegex(SystemExit, "differs from this workflow pin"):
-                    exec(compile(textwrap.dedent(script), str(WORKFLOW), "exec"), {})
-            self.assertFalse(marker.exists())
+    def test_verify_and_publish_bootstraps_reject_modified_helper_without_executing_it(self):
+        for job in ("verify", "publish"):
+            with self.subTest(job=job), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory) / "plugin-release"
+                root.mkdir()
+                marker = root / "executed"
+                (root / "plugin_release.py").write_text(f"from pathlib import Path\nPath({str(marker)!r}).touch()\n")
+                with patch.dict(os.environ, {"RUNNER_TEMP": directory, "PLUGIN_RELEASE_SHA256": release.sha256(SCRIPT.read_bytes())}):
+                    with self.assertRaisesRegex(SystemExit, "differs from this workflow pin"):
+                        exec(compile(python_step(job), str(WORKFLOW), "exec"), {})
+                self.assertFalse(marker.exists())
 
     def test_bootstrap_loads_pinned_reusable_workflow_source_from_run_metadata(self):
-        import textwrap
-        workflow = WORKFLOW.read_text()
-        script = workflow.split("<<'PY'\n", 1)[1].split("\n          PY", 1)[0]
+        script = python_step("source")
         run = {"referenced_workflows": [{"path": WORKFLOW_REF, "sha": WORKFLOW_SHA},
                                          {"path": "example/caller/.github/workflows/other.yml@main", "sha": "c" * 40}]}
         responses = [io.BytesIO(json.dumps(run).encode()),

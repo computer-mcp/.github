@@ -5,6 +5,7 @@ download bytes, and send a mutation. Tests supply an in-memory implementation.
 """
 
 import argparse
+import base64
 from datetime import datetime
 import hashlib
 import io
@@ -13,7 +14,6 @@ import os
 from pathlib import Path, PurePosixPath
 import re
 import stat
-import subprocess
 import sys
 import tomllib
 from urllib.error import HTTPError
@@ -253,6 +253,17 @@ def get_ci_archives(api, repository, commit, ci, declared, recovering=False):
     root = repository_path(repository)
     recovery = "Recorded CI artifact is expired or missing; delete the unpublished draft release, then rerun release.yml to select fresh CI provenance"
     require(len(ci["artifacts"]) == 1, "Rebuild releases require one source CI artifact")
+    attempt = None
+    if recovering:
+        branch = api.get(root)["default_branch"]
+        try:
+            attempt = api.get(f"{root}/actions/runs/{ci['run_id']}/attempts/{ci['run_attempt']}")
+        except APIError as error:
+            raise ReleaseError(f"Cannot validate recorded CI attempt: {error}") from None
+        check_run(attempt, repository, branch, commit)
+        require(attempt.get("id") == ci["run_id"] and attempt.get("run_attempt") == ci["run_attempt"]
+                and attempt.get("status") == "completed" and attempt.get("conclusion") == "success",
+                "Recorded CI attempt must exist and have succeeded")
     source = ci["artifacts"][0]
     try:
         artifact = api.get(f"{root}/actions/artifacts/{source['id']}")
@@ -263,6 +274,11 @@ def get_ci_archives(api, repository, commit, ci, declared, recovering=False):
         require(artifact.get("workflow_run", {}).get("id") == ci["run_id"]
                 and artifact.get("workflow_run", {}).get("head_sha") == commit,
                 "CI artifact belongs to another run or commit")
+        if attempt is not None:
+            created = datetime.fromisoformat(artifact["created_at"].replace("Z", "+00:00"))
+            require(datetime.fromisoformat(attempt["run_started_at"].replace("Z", "+00:00")) <= created
+                    <= datetime.fromisoformat(attempt["updated_at"].replace("Z", "+00:00")),
+                    "CI artifact was not created within the recorded CI attempt")
         data = api.download(f"{root}/actions/artifacts/{source['id']}/zip")
     except APIError as error:
         if recovering and error.status in (404, 410):
@@ -360,28 +376,29 @@ def check_assets(assets, files, draft, complete=False):
                 and asset.get("size") == len(files[name]), f"Completed release asset conflicts: {name}")
 
 
-def build_archives(checkout, command, output, declared):
-    require(not output.exists(), "Build output directory must not exist")
-    environment = {key: value for key, value in os.environ.items() if key not in ("GH_TOKEN", "GITHUB_TOKEN")}
-    subprocess.run(["bash", "-euo", "pipefail", "-c", command + ' "$1"', "plugin-build", str(output)],
-                   cwd=checkout, env=environment, check=True)
-    require(output.is_dir() and not output.is_symlink(), "Build did not create an output directory")
-    archives = {}
-    for path in output.iterdir():
-        require(path.is_file() and not path.is_symlink() and re.fullmatch(ARCHIVE, path.name),
-                "Build output must contain only regular plugin ZIP archives")
-        archives[path.name] = path.read_bytes()
+def get_build_archives(api, repository, artifact_id, run_id, declared):
+    root = repository_path(repository)
+    require(positive(artifact_id) and positive(run_id), "Invalid build artifact or release run ID")
+    artifact = api.get(f"{root}/actions/artifacts/{artifact_id}")
+    require(artifact.get("id") == artifact_id and not artifact.get("expired")
+            and artifact.get("workflow_run", {}).get("id") == run_id,
+            "Build artifact must be an available artifact from this release run")
+    data = api.download(f"{root}/actions/artifacts/{artifact_id}/zip")
+    require(sha256(data) == digest_value(artifact.get("digest")), "Downloaded build artifact digest mismatch")
+    archives = zip_entries(data)
     archive_names(list(archives), declared)
     return archives
 
 
-def verify(api, repository, ref, publish, checkout, build, ci_artifact, workflow_ref, workflow_sha,
-           output, build_output):
+def verify(api, repository, ref, publish, source_commit, build_artifact_id, run_id, ci_artifact, workflow_ref, workflow_sha,
+           output):
     root = repository_path(repository)
     commit, tag = resolve(api, repository, ref, publish)
-    actual = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=checkout, text=True).strip()
-    require(actual == commit, "Checkout differs from the resolved release commit")
-    manifest = tomllib.loads((checkout / "computer-mcp-plugin.toml").read_text())
+    require(commit == source_commit, "Release ref moved after source resolution")
+    source = api.get(f"{root}/contents/computer-mcp-plugin.toml?ref={commit}")
+    require(source.get("type") == "file" and source.get("encoding") == "base64",
+            "Release source manifest must be a file with base64 contents")
+    manifest = tomllib.loads(base64.b64decode(source["content"]).decode())
     info, declared = manifest_info(manifest, tag)
     release = find_release(api, root, tag)
     if release and release["draft"]:
@@ -404,7 +421,7 @@ def verify(api, repository, ref, publish, checkout, build, ci_artifact, workflow
         else:
             ci = receipt["ci"]
         archives = get_ci_archives(api, repository, commit, ci, declared, recovering=receipt is not None)
-    rebuilt = build_archives(checkout, build, build_output, declared)
+    rebuilt = get_build_archives(api, repository, build_artifact_id, run_id, declared)
     require(rebuilt == archives, "Rebuilt archives differ byte for byte from the accepted archives")
     for data in archives.values():
         contents = zip_entries(data)
@@ -423,32 +440,38 @@ def verify(api, repository, ref, publish, checkout, build, ci_artifact, workflow
     output.mkdir(parents=True)
     for name, data in files.items():
         (output / name).write_bytes(data)
-    return {"commit": commit, "tag": tag or "", "receipt_sha256": sha256(files[RECEIPT])}
+    return {"commit": commit, "tag": tag or "", "asset_digests": json.dumps(
+        {name: sha256(data) for name, data in files.items()}, sort_keys=True, separators=(",", ":"))}
 
 
-def load_bundle(directory, expected_receipt):
-    require(directory.is_dir() and not directory.is_symlink()
-            and (directory / RECEIPT).is_file() and not (directory / RECEIPT).is_symlink(),
-            "Invalid verified bundle file set")
-    data = (directory / RECEIPT).read_bytes()
-    require(sha256(data) == expected_receipt, "Receipt differs from the verify job's digest")
-    receipt = validate_receipt(data)
-    expected = {item["name"] for item in receipt["archives"]} | {RECEIPT, SUMS}
+def load_bundle(directory, expected_digests):
+    require(directory.is_dir() and not directory.is_symlink(), "Invalid verified bundle file set")
     paths = list(directory.iterdir())
-    require({path.name for path in paths} == expected
-            and all(path.is_file() and not path.is_symlink() for path in paths), "Invalid verified bundle file set")
+    require(all(path.is_file() and not path.is_symlink() for path in paths), "Invalid verified bundle file set")
     files = {path.name: path.read_bytes() for path in paths}
+    require({name: sha256(data) for name, data in files.items()} == json.loads(expected_digests),
+            "Bundle differs from the verify job's digests")
+    require(RECEIPT in files, "Invalid verified bundle file set")
+    receipt = validate_receipt(files[RECEIPT])
+    expected = {item["name"] for item in receipt["archives"]} | {RECEIPT, SUMS}
+    require(set(files) == expected, "Invalid verified bundle file set")
     require(files == assemble(receipt, {item["name"]: files[item["name"]] for item in receipt["archives"]}),
             "Verified bundle checksums differ")
     return receipt, files
 
 
-def publish_bundle(api, repository, directory, expected_receipt):
-    receipt, files = load_bundle(directory, expected_receipt)
+def publish_bundle(api, repository, directory, expected_digests):
+    receipt, files = load_bundle(directory, expected_digests)
     root = repository_path(repository)
     require(receipt["tag"] is not None, "Cannot publish an untagged dry-run bundle")
     commit, tag = resolve(api, repository, receipt["tag"], True)
     require(commit == receipt["commit"], "Release tag moved after verification")
+    try:
+        immutable = api.get(f"{root}/immutable-releases")
+    except APIError as error:
+        raise ReleaseError(f"Cannot verify repository release immutability: {error}") from None
+    require(immutable.get("enabled") is True,
+            "Enable release immutability in the plugin repository before publishing")
     release = find_release(api, root, tag)
     if release is None:
         release = api.send("POST", f"{root}/releases", {
@@ -508,13 +531,14 @@ def main():
             command.add_argument("--ref", required=True)
             command.add_argument("--publish", choices=("true", "false"), required=True)
         if name == "verify":
-            for flag in ("checkout", "output", "build-output"):
-                command.add_argument("--" + flag, type=Path, required=True)
-            for flag in ("build", "ci-artifact", "workflow-ref", "workflow-sha"):
+            command.add_argument("--output", type=Path, required=True)
+            for flag in ("build-artifact-id", "run-id"):
+                command.add_argument("--" + flag, type=int, required=True)
+            for flag in ("commit", "ci-artifact", "workflow-ref", "workflow-sha"):
                 command.add_argument("--" + flag, required=True)
         if name == "publish":
             command.add_argument("--directory", type=Path, required=True)
-            command.add_argument("--receipt-sha256", required=True)
+            command.add_argument("--asset-digests", required=True)
     args = parser.parse_args()
     try:
         api = GitHub(os.environ["GH_TOKEN"])
@@ -522,22 +546,22 @@ def main():
             commit, tag = resolve(api, args.repository, args.ref, args.publish == "true")
             result = {"commit": commit, "tag": tag or ""}
         elif args.command == "verify":
-            result = verify(api, args.repository, args.ref, args.publish == "true", args.checkout.resolve(),
-                            args.build, args.ci_artifact, args.workflow_ref, args.workflow_sha,
-                            args.output.resolve(), args.build_output.resolve())
+            result = verify(api, args.repository, args.ref, args.publish == "true", args.commit, args.build_artifact_id,
+                            args.run_id, args.ci_artifact, args.workflow_ref, args.workflow_sha,
+                            args.output.resolve())
             if args.publish == "false":
                 print("Dry run: no Release writes. Publication requires a signed annotated v" +
-                      tomllib.loads((args.checkout / "computer-mcp-plugin.toml").read_text())["version"] +
+                      json.loads((args.output / RECEIPT).read_bytes())["version"] +
                       " tag at the verified commit; record manual acceptance in the Release notes.")
         else:
-            result = publish_bundle(api, args.repository, args.directory, args.receipt_sha256)
+            result = publish_bundle(api, args.repository, args.directory, args.asset_digests)
         if "GITHUB_OUTPUT" in os.environ:
             with open(os.environ["GITHUB_OUTPUT"], "a") as output:
                 for key, value in result.items():
                     output.write(f"{key}={value}\n")
         print(json.dumps(result, sort_keys=True))
         return 0
-    except (OSError, ValueError, KeyError, TypeError, zipfile.BadZipFile, subprocess.CalledProcessError) as error:
+    except (OSError, ValueError, KeyError, TypeError, zipfile.BadZipFile) as error:
         print(str(error), file=sys.stderr)
         return 1
 
