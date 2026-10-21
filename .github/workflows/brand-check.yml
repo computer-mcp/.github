@@ -13,7 +13,7 @@ jobs:
           persist-credentials: false
       - name: Verify locked brand delivery
         run: |
-          python3 - <<'PY'
+          python3 -I - <<'PY'
           import hashlib, json, sys
           from pathlib import Path
 
