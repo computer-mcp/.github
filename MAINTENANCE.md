@@ -15,7 +15,11 @@ only what they share.
 - Each public repository enforces these rules with a `default branch` ruleset
   that has no bypass: it blocks deletion and force pushes, requires signed
   commits, and accepts only squash-merged pull requests whose required checks
-  pass. Automation proposes its changes as pull requests that merge
+  pass. The host repository, `computer-mcp`, whose pull requests often build on
+  one another, merges through a merge queue instead of requiring branches to be
+  up to date: the queue squash merges each pull request only after its own
+  required checks pass on its queued result, and its CI also runs on
+  `merge_group` events. Automation proposes its changes as pull requests that merge
   automatically once those checks pass. It acts through the Computer MCP
   Updater GitHub App, installed only where automation proposes changes: the
   App's installation token has GitHub create each proposal commit through the
@@ -75,7 +79,9 @@ an App or an Actions credential, and update this section in the same change.
   workflows, like the organization default, get a read-only token that cannot
   approve pull requests.
 - Each public repository's `default branch` ruleset requires at least one
-  check; each repository's CI owns which.
+  check; each repository's CI owns which. The `computer-mcp` default branch
+  ruleset is the only ruleset with a merge queue, and its required checks do
+  not also require an up-to-date branch.
 - Only these GitHub Apps are installed. Each has exactly the listed
   permissions, is installed only on the listed repositories and subscribes to
   no events:

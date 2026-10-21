@@ -22,6 +22,7 @@ MERGES = {
     "delete_branch_on_merge": True,
 }
 RULES = {"deletion", "non_fast_forward", "required_signatures", "pull_request", "required_status_checks"}
+MERGE_QUEUE_REPOS = {"computer-mcp"}
 
 
 class ApiError(Exception):
@@ -33,6 +34,18 @@ def gh(path):
     if result.returncode:
         raise ApiError(f"gh api {path}: {result.stderr.strip() or result.stdout.strip()}")
     return json.loads(result.stdout)
+
+
+def gh_list(path):
+    """Every item of a paginated list endpoint."""
+    items, page = [], 1
+    separator = "&" if "?" in path else "?"
+    while True:
+        batch = gh(f"{path}{separator}per_page=100&page={page}")
+        items += batch
+        if len(batch) < 100:
+            return items
+        page += 1
 
 
 def expected_apps():
@@ -75,6 +88,39 @@ def ruleset_problems(repo):
             problems.append(f"{repo}: default branch ruleset allows {rules['pull_request']['allowed_merge_methods']}")
         if not rules["required_status_checks"]["required_status_checks"]:
             problems.append(f"{repo}: default branch ruleset requires no checks")
+        if repo in MERGE_QUEUE_REPOS:
+            queue = rules.get("merge_queue")
+            if queue is None:
+                problems.append(f"{repo}: default branch ruleset has no merge queue")
+            else:
+                if queue["merge_method"] != "SQUASH":
+                    problems.append(f"{repo}: merge queue uses {queue['merge_method']}")
+                if queue["grouping_strategy"] != "ALLGREEN":
+                    problems.append(f"{repo}: merge queue groups with {queue['grouping_strategy']}")
+            if rules["required_status_checks"]["strict_required_status_checks_policy"]:
+                problems.append(f"{repo}: required checks also require an up-to-date branch")
+    return problems
+
+
+def merge_queue_problems(repo, notes):
+    """Every merge queue in any ruleset, including inherited ones, must be the declared one."""
+    try:
+        listed = gh_list(f"repos/{ORG}/{repo}/rulesets?includes_parents=true")
+    except ApiError:
+        notes.append(f"{repo}: rulesets not readable, so merge queues were not checked")
+        return []
+    problems = []
+    for item in listed:
+        try:
+            ruleset = gh(f"{item['_links']['self']['href'].split('/api.github.com/', 1)[-1]}")
+        except ApiError:
+            notes.append(f"{repo}: ruleset {item['name']!r} not readable, so its merge queue was not checked")
+            continue
+        if not any(rule["type"] == "merge_queue" for rule in ruleset["rules"]):
+            continue
+        declared = repo in MERGE_QUEUE_REPOS and ruleset["name"] == "default branch" and ruleset["source"] == f"{ORG}/{repo}"
+        if not declared:
+            problems.append(f"{repo}: ruleset {ruleset['name']!r} from {ruleset['source']} has an undeclared merge queue")
     return problems
 
 
@@ -127,7 +173,7 @@ def main():
             if names := [item["name"] for item in gh(f"orgs/{ORG}/actions/{kind}?per_page=100")[kind]]:
                 problems.append(f"organization: Actions {kind} {', '.join(names)}")
 
-        repos = {repo["name"]: repo for repo in gh(f"orgs/{ORG}/repos?type=all&per_page=100") if not repo["archived"]}
+        repos = {repo["name"]: repo for repo in gh_list(f"orgs/{ORG}/repos?type=all") if not repo["archived"]}
         listed = set(credentials).union(*(app["installed"] for app in apps.values()))
         for repo in sorted(listed - repos.keys()):
             problems.append(f"{repo}: listed in MAINTENANCE.md but not in the organization")
@@ -143,6 +189,7 @@ def main():
                     problems.append(f"{repo}: Actions {kind} {sorted(names)}, expected {sorted(expected)}")
             if not detail["private"]:
                 problems += ruleset_problems(repo)
+            problems += merge_queue_problems(repo, notes)
         problems += app_problems(apps, notes)
     except ApiError as error:
         raise SystemExit(str(error))
