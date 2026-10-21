@@ -26,7 +26,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Test shared plugin runtime and delivery
+      - name: Test shared plugin runtime, delivery and release
         run: python3 -m unittest discover -s Tests
       - name: Check embedded runtime digest
         run: python3 Scripts/plugin-runtime.py check-workflow

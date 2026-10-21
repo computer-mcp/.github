@@ -54,6 +54,80 @@ release fixes and capabilities within the same API version; its package
 version and the host's release version need not match that API number or one
 another.
 
+## Plugin release contents
+
+A plugin Release contains the plugin ZIP archives, `release-receipt.json` and
+`SHA256SUMS`. Archive names are exactly those in the tagged manifest's
+`compatibility.artifacts`; without that declaration the package has one ZIP
+archive. Each archive contains the tagged `computer-mcp-plugin.toml` at its root.
+Builder metadata inside an Actions artifact is not a Release asset.
+
+`release-receipt.json` schema **1** has these fields:
+
+| Field | Meaning |
+| --- | --- |
+| `schema` | Integer `1` |
+| `plugin_id`, `version`, `plugin_api` | Tagged manifest ID, SemVer and positive integer plugin API |
+| `compatibility` | The manifest's compatibility table, including artifact declarations when present; `{}` if absent |
+| `tag`, `commit` | Signed annotated version tag and its full source commit SHA; `tag` is `null` only for an untagged dry run |
+| `archives` | Records sorted by name: `name` (ZIP basename), `size` (bytes), `sha256` (lowercase hexadecimal) |
+| `ci` | `run_id`, `run_attempt` and `artifacts`: source Actions artifact records with `id` and `digest` (`sha256:` followed by lowercase hexadecimal), sorted by ID |
+| `workflow` | `ref` (repository/workflow path with `@ref`) and `sha` (full commit of that release workflow) |
+| `reproduction` | `rebuild`, or `ci-artifact-promotion` for the Codex exception below |
+
+The receipt has no timestamps or machine paths. Encode it as UTF-8 JSON with
+sorted object keys, two-space indentation, ASCII escapes and one trailing LF
+(`json.dumps(value, sort_keys=True, indent=2, ensure_ascii=True) + "\n"`).
+`SHA256SUMS` contains lowercase SHA-256, two spaces, filename and LF, sorted by
+filename. It covers every archive and the receipt; it does not hash itself.
+Human acceptance results and their limits belong in the Release notes.
+
+The reusable
+[plugin release workflow](.github/workflows/plugin-release.yml) uses the
+repository's default-branch `push` run of `.github/workflows/ci.yml` for the
+exact source commit. It selects the latest successful matching run and rechecks
+its latest attempt. The exact `ci_artifact` name selects one artifact
+created within that attempt, with a recorded and verified API digest. Outputs
+left from earlier attempts cannot supply a new release. Verification rebuilds
+the archives and requires byte equality with that CI artifact. The shared
+workflow's receipt records one source CI artifact and `reproduction: rebuild`.
+
+Publication creates or resumes a commit-bound draft. It uploads the receipt
+first, then the archives, then `SHA256SUMS`, and checks the complete asset set,
+sizes and API digests before making the draft public. The uploaded receipt
+freezes the CI run, attempt, artifact IDs and digests, and release workflow
+reference and commit. Recovery reuses that receipt and the recorded artifacts;
+it does not select a newer CI run or rewrite provenance after a CI rerun or
+workflow update.
+
+An interrupted asset in GitHub's `starter` state may be deleted and uploaded
+again only while the Release is still a draft. Completed assets must have
+expected names, sizes and matching digests; conflicts or unexpected assets fail
+without replacement. If a frozen artifact expires or disappears, delete the
+unpublished draft, obtain fresh successful CI artifacts, and rerun publication.
+A public Release is never changed by the workflow. A repeat verifies the exact
+asset set against the frozen receipt and reports it as published; CI artifact
+retention does not invalidate an already complete public Release.
+
+Dry runs perform the same source, CI, rebuild and assembly checks without any
+Release writes or catalog credentials. A commit dry run omits tag and signature
+checks and reports the signed tag still required for publication. See the
+[consumer guide](Documentation/Reference/PluginRelease.md) for inputs, outputs,
+the caller workflow and recovery operations.
+
+### Codex promotion exception
+
+The Codex plugin's native archives cannot be reproduced byte for byte. Its own
+release workflow promotes the accepted CI artifacts, verifies signed annotated
+tags, and uses schema 1 with `reproduction: ci-artifact-promotion`. Its `ci`
+records every source artifact. Each archive record additionally has
+`native_receipt`, an object with `name`, `size` and `sha256` for its native build
+receipt. Those `<archive-stem>.receipt.json` files remain Release assets and
+inputs to Codex's `check-package.py`; `SHA256SUMS` covers them as well as the
+archives and unified receipt. Codex follows the same receipt-first draft,
+frozen provenance, digest verification, publication and recovery rules. Its
+repository owns native archive acceptance and the promotion implementation.
+
 ## Swift dependencies
 
 `Package.swift` owns requirements; `Package.resolved` records selected versions

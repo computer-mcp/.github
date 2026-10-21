@@ -23,6 +23,9 @@ conventions every Computer MCP repository shares.
   runtime and adoption instructions. `Scripts/plugin-runtime.py` syncs and
   checks copies; `.github/workflows/plugin-runtime.yml` verifies consumers
   against the runtime digest fixed by their workflow pin.
+- `.github/workflows/plugin-release.yml` verifies and publishes reproducible
+  plugin releases. The [consumer guide](Documentation/Reference/PluginRelease.md)
+  describes its caller, inputs, outputs and recovery operations.
 
 Product meaning and copy belong to the main repository's
 [ProductIdentity](https://github.com/computer-mcp/computer-mcp/blob/master/Documentation/Architecture/ProductIdentity.md).
