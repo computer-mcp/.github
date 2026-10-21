@@ -185,8 +185,15 @@ class FakeGitHub:
 
     def add_draft(self):
         self.releases[50] = {"id": 50, "tag_name": TAG, "target_commitish": COMMIT, "name": TAG,
-                             "draft": True, "prerelease": False, "body": "Operator acceptance notes"}
+                             "draft": True, "immutable": False, "prerelease": False,
+                             "body": "Operator acceptance notes"}
         return self.releases[50]
+
+    def publish_release(self, release_id=50):
+        item = self.releases[release_id]
+        if item["draft"]:
+            item.update(draft=False, immutable=self.immutability.get("enabled") is True)
+        return item
 
     def add_asset(self, name, data=b"", state="uploaded", release_id=50):
         self.next_id += 1
@@ -212,7 +219,7 @@ class FakeGitHub:
         if step != "draft":
             release_id = (self.assets[int(route.split("/")[3])]["release_id"] if step == "delete"
                           else int(route.split("/")[2]))
-            if self.immutability.get("enabled") is True and not self.releases[release_id]["draft"]:
+            if self.releases[release_id].get("immutable") is True:
                 raise release.APIError(422, path)
         self.writes.append((step, copy.deepcopy(data)))
         if step == "draft":
@@ -220,6 +227,8 @@ class FakeGitHub:
             result.update(data)
         elif step == "publish":
             result = self.releases[int(route.split("/")[2])]
+            if data.get("draft") is False:
+                self.publish_release(result["id"])
             result.update(data)
         elif step == "delete":
             asset_id = int(route.split("/")[3])
@@ -328,6 +337,7 @@ class ReleaseTests(unittest.TestCase):
         self.assertEqual(self.api.writes, [])
         result = self.publish()
         self.assertEqual(result, {"published": "true", "release_id": "50", "tag": TAG})
+        self.assertIs(self.api.releases[50]["immutable"], True)
         self.assertEqual([step for step, _ in self.api.writes],
                          ["draft", release.RECEIPT, "widget.zip", release.SUMS, "publish"])
         self.assertEqual(self.api.releases[50]["body"], "Operator acceptance notes")
@@ -561,6 +571,57 @@ class ReleaseTests(unittest.TestCase):
         self.assertEqual(self.publish()["published"], "true")
         self.assertEqual(self.api.writes, writes)
 
+    def test_release_published_before_immutability_was_enabled_requires_owner_handling(self):
+        self.verify()
+        self.api.add_draft()
+        for name, data in self.files().items():
+            self.api.add_asset(name, data)
+        self.api.immutability["enabled"] = False
+        self.api.publish_release()
+        self.api.immutability["enabled"] = True
+        self.assertIs(self.api.get(API_ROOT + "/releases/50")["immutable"], False)
+        for operation in (self.verify_again, self.publish):
+            with self.subTest(operation=operation.__name__):
+                self.assert_no_writes(operation, "public but mutable.*owner")
+
+    def test_public_release_requires_explicit_immutable_true(self):
+        self.verify()
+        self.publish()
+        item = self.api.releases[50]
+        for immutable in (None, "true", 1, "missing"):
+            with self.subTest(immutable=immutable):
+                if immutable == "missing":
+                    item.pop("immutable")
+                else:
+                    item["immutable"] = immutable
+                for operation in (self.verify_again, self.publish):
+                    self.assert_no_writes(operation, "public but mutable.*owner")
+
+    def test_publication_requires_the_published_release_to_report_immutable_true(self):
+        self.verify()
+        for immutable in (False, None, "true", 1, "missing"):
+            with self.subTest(immutable=immutable):
+                self.api = FakeGitHub(self.archives)
+                original = self.api.send
+
+                def send(method, path, *arguments):
+                    if method == "PATCH":
+                        self.api.immutability["enabled"] = False
+                    result = original(method, path, *arguments)
+                    if method == "PATCH":
+                        if immutable == "missing":
+                            result.pop("immutable")
+                        else:
+                            result["immutable"] = immutable
+                    return result
+
+                with patch.object(self.api, "send", side_effect=send):
+                    with self.assertRaisesRegex(release.ReleaseError, "public but mutable.*owner"):
+                        self.publish()
+                self.assertIs(self.api.releases[50]["draft"], False)
+                self.assertIs(self.api.releases[50]["immutable"], False)
+                self.assertEqual(self.api.writes[-1], ("publish", {"draft": False}))
+
     def test_public_release_incomplete_extra_starter_or_conflicting_assets_are_immutable(self):
         self.verify()
         self.publish()
@@ -590,7 +651,7 @@ class ReleaseTests(unittest.TestCase):
             if path.endswith("/releases/50"):
                 count += 1
                 if count == 2:
-                    self.api.releases[50]["draft"] = False
+                    self.api.publish_release()
             return original(path)
 
         with patch.object(self.api, "get", side_effect=get):
@@ -633,7 +694,7 @@ class ReleaseTests(unittest.TestCase):
 
                 def send(method, path, *arguments):
                     self.assertEqual(method, mutation)
-                    self.api.releases[50]["draft"] = False
+                    self.api.publish_release()
                     return original(method, path, *arguments)
 
                 stderr = io.StringIO()

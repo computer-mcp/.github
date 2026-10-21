@@ -296,6 +296,11 @@ def find_release(api, root, tag):
     return matches[0] if matches else None
 
 
+def check_immutable_release(release):
+    require(release.get("immutable") is True,
+            "Release is public but mutable; the repository owner must handle it (immutable: true required)")
+
+
 def release_assets(api, root, release):
     assets = api.list(f"{root}/releases/{release['id']}/assets")
     names = [asset["name"] for asset in assets]
@@ -401,8 +406,11 @@ def verify(api, repository, ref, publish, source_commit, build_artifact_id, run_
     manifest = tomllib.loads(base64.b64decode(source["content"]).decode())
     info, declared = manifest_info(manifest, tag)
     release = find_release(api, root, tag)
-    if release and release["draft"]:
-        require(release["target_commitish"] == commit, "Draft release target differs from the verified commit")
+    if release:
+        if release["draft"]:
+            require(release["target_commitish"] == commit, "Draft release target differs from the verified commit")
+        else:
+            check_immutable_release(release)
     assets = release_assets(api, root, release) if release else {}
     receipt = None
     if RECEIPT in assets and assets[RECEIPT].get("state") == "uploaded":
@@ -482,6 +490,8 @@ def publish_bundle(api, repository, directory, expected_digests):
     def current():
         observed = api.get(f"{root}/releases/{release_id}")
         require(observed["tag_name"] == tag, "Release tag changed")
+        if not observed["draft"]:
+            check_immutable_release(observed)
         return observed
 
     def draft():
@@ -517,6 +527,7 @@ def publish_bundle(api, repository, directory, expected_digests):
     # Publishing changes only visibility; release notes remain operator-owned.
     published = api.send("PATCH", f"{root}/releases/{release_id}", {"draft": False})
     require(published.get("draft") is False and published.get("tag_name") == tag, "Release did not become public")
+    check_immutable_release(published)
     check_assets(release_assets(api, root, published), files, False, complete=True)
     return {"published": "true", "release_id": str(release_id), "tag": tag}
 

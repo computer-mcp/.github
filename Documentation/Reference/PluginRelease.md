@@ -63,8 +63,13 @@ execute only the pinned helper; neither checks out or executes caller code.
 Plugin repositories must enable GitHub release immutability in their repository
 settings before publishing. The helper checks `/repos/{owner}/{repo}/immutable-releases`
 through the API before any Release write and fails clearly unless it reports
-`enabled: true`. Server enforcement protects public assets even if another
-publisher makes the draft public after a draft precheck.
+`enabled: true`. Server enforcement protects immutable release assets even if
+another publisher makes the draft public after a draft precheck. Enabling the
+setting does not lock previously published releases. The helper also requires the
+Release's own `immutable: true` when it finds an existing public release and in
+the response after publishing a draft. A public but mutable release fails with
+an error requiring the repository owner to handle it; the workflow does not
+change it or report it as published.
 
 | Input | Contract |
 | --- | --- |
@@ -76,7 +81,7 @@ publisher makes the draft public after a draft precheck.
 
 | Output | Contract |
 | --- | --- |
-| `published` | String `true` after publishing or verifying an already public release; `false` for a dry run |
+| `published` | String `true` after publishing or verifying a complete public release with `immutable: true`; `false` for a dry run |
 | `release_id` | Published GitHub Release ID, empty for a dry run |
 | `tag` | Verified version tag, empty for an untagged commit dry run |
 
@@ -131,11 +136,12 @@ or was removed, delete the unpublished draft, obtain fresh successful CI
 artifacts and dispatch again. This deliberately starts a new assembly with new
 provenance. Published tags and assets remain immutable.
 
-An already public release is checked against its frozen receipt and exact asset
-set and reported as published without writes. Verification still rebuilds the
-archives; it can compare against the public archive bytes after CI retention
-has expired. Notification failure needs only a rerun of the notification job or
-a manual dispatch of `notify-catalog.yml`; publication need not be repeated.
+An already public release must report `immutable: true`. It is checked against
+its frozen receipt and exact asset set and reported as published without writes.
+Verification still rebuilds the archives; it can compare against the public
+archive bytes after CI retention has expired. Notification failure needs only a
+rerun of the notification job or a manual dispatch of `notify-catalog.yml`;
+publication need not be repeated.
 
 ## Maintaining the shared workflow
 
@@ -144,9 +150,10 @@ GitHub API interface. The offline tests use an in-memory API and inject failures
 before and after draft creation, every asset upload, starter deletion and
 publication. They also exercise provenance recovery, immutable public releases,
 source checks, archive comparison, malicious build isolation, publish-only
-retries and the workflow's helper boundary. The fake server rejects mutations
-of public releases when immutability is enabled, including visibility changes
-between draft prechecks and mutation requests.
+retries and the workflow's helper boundary. The fake server fixes each release's
+immutability when it is published: older mutable releases stay mutable when the
+repository setting is enabled. It rejects mutations of immutable releases,
+including visibility changes between draft prechecks and mutation requests.
 
 When changing the helper, update `PLUGIN_RELEASE_SHA256` in the workflow to its
 SHA-256. The repository CI runs the offline suite and verifies that digest:

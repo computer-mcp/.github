@@ -99,8 +99,13 @@ artifact and `reproduction: rebuild`.
 Plugin repositories must enable GitHub release immutability. Before any Release
 write, the workflow verifies that repository setting through the API and
 refuses publication if it is disabled or cannot be verified. The server rejects
-asset mutations after publication, including when another publisher makes a
+asset mutations on immutable releases, including when another publisher makes a
 draft public between this workflow's draft precheck and mutation request.
+Enabling the setting does not lock previously published releases. The workflow
+requires the Release's own `immutable: true` both when accepting an existing
+public Release and in the response after publishing a draft. A public but
+mutable Release fails with an error requiring the repository owner to handle it;
+the workflow does not change it or report it as published.
 
 Publication creates or resumes a commit-bound draft. It uploads the receipt
 first, then the archives, then `SHA256SUMS`, and checks the complete asset set,

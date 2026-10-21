@@ -37,7 +37,7 @@ concurrency:
   group: plugin-release-${{ github.repository }}-${{ inputs.ref }}
   cancel-in-progress: false
 env:
-  PLUGIN_RELEASE_SHA256: 'c9f07d882b52c15fc80bda0cb052575ff43fb0b90d9e61be6e5060787d717d19'
+  PLUGIN_RELEASE_SHA256: 'faea0a5f33ef714231c23951050f3851867aec593a7d2369d9fb5e8f8db2ce74'
 jobs:
   source:
     runs-on: ubuntu-24.04
