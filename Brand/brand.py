@@ -92,7 +92,7 @@ def inside(root, name):
 def verify(root):
     workflow = VERIFIER.read_text()
     script = workflow.split("<<'PY'\n", 1)[1].split("\n          PY\n", 1)[0]
-    return subprocess.run([sys.executable, "-"], input=textwrap.dedent(script), text=True, cwd=root).returncode
+    return subprocess.run([sys.executable, "-I", "-"], input=textwrap.dedent(script), text=True, cwd=root).returncode
 
 
 def sync(checkout, repository):

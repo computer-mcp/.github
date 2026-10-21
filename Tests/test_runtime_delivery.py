@@ -4,6 +4,7 @@ import hashlib
 import os
 from pathlib import Path
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -38,7 +39,7 @@ class DeliveryTests(unittest.TestCase):
 
     def run_command(self, *args, expected=0):
         result = subprocess.run(
-            [sys.executable, str(self.script), *map(str, args)],
+            [sys.executable, "-I", str(self.script), *map(str, args)],
             cwd=self.checkout, capture_output=True, text=True, timeout=10,
         )
         self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
@@ -131,12 +132,14 @@ class WorkflowVerifierTests(unittest.TestCase):
         self.target = self.checkout / "bin/plugin_runtime.py"
         self.target.parent.mkdir()
         workflow = WORKFLOW.read_text()
-        self.script = textwrap.dedent(workflow.split("<<'PY'\n", 1)[1].split("\n          PY\n", 1)[0])
+        command, script = workflow.split("<<'PY'\n", 1)
+        self.command = [sys.executable, *shlex.split(command.splitlines()[-1])[1:]]
+        self.script = textwrap.dedent(script.split("\n          PY\n", 1)[0])
         self.digest = re.search(r"PLUGIN_RUNTIME_SHA256: '([0-9a-f]{64})'", workflow).group(1)
 
     def verify(self, expected):
         result = subprocess.run(
-            [sys.executable, "-"], input=self.script, text=True,
+            self.command, input=self.script, text=True,
             cwd=self.checkout, capture_output=True, timeout=10,
             env=dict(os.environ, PLUGIN_RUNTIME_SHA256=self.digest),
         )
@@ -158,6 +161,25 @@ class WorkflowVerifierTests(unittest.TestCase):
         result = self.verify(1)
         self.assertIn("differs from the pinned", result.stderr)
         self.assertFalse(marker.exists())
+
+    def test_changed_runtime_fails_with_consumer_hashlib(self):
+        self.target.write_bytes(CANONICAL.read_bytes() + b"\n")
+        (self.checkout / "hashlib.py").write_text(textwrap.dedent("""\
+            import os
+            from pathlib import Path
+
+            Path("hashlib-imported").touch()
+
+            class Digest:
+                def hexdigest(self):
+                    return os.environ["PLUGIN_RUNTIME_SHA256"]
+
+            def sha256(data):
+                return Digest()
+            """))
+        result = self.verify(1)
+        self.assertIn("differs from the pinned", result.stderr)
+        self.assertFalse((self.checkout / "hashlib-imported").exists())
 
     def test_runtime_outside_checkout_fails_even_when_digest_matches(self):
         outside = self.root / "outside.py"
