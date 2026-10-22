@@ -12,7 +12,8 @@ Each repository owns its own decisions and rules:
 
 - accepted technical decisions in `Documentation/Decisions/`, with current
   truth in `Documentation/Architecture/`;
-- version and release rules in `Documentation/Architecture/VersioningAndRelease.md`,
-  or its README where it has none.
+- version rules that differ from [VERSIONING.md](VERSIONING.md) in a root
+  `VERSIONING.md`, and release facts and procedure in
+  `Documentation/Reference/Release.md`.
 
 [MAINTENANCE.md](MAINTENANCE.md) holds the conventions all repositories share.

@@ -1,8 +1,11 @@
 # Versioning
 
-These rules apply to every Computer MCP repository. Each repository's
-`Documentation/Architecture/VersioningAndRelease.md`, or its README where it
-has none, owns its version sources, release procedure and written exceptions.
+These rules apply to every Computer MCP repository, and version rules live
+only in VERSIONING. A repository whose rules differ, such as one with a written
+exception, keeps a root `VERSIONING.md` that adopts these rules and states only
+its differences. Each repository's release reference,
+`Documentation/Reference/Release.md`, owns its version sources, release
+procedure and checks, and links these rules instead of restating them.
 
 ## Versions
 
