@@ -105,7 +105,7 @@ jobs:
         run: |
           python3 -I "$RUNNER_TEMP/plugin-release/plugin_release.py" resolve \
             --repository "$GH_REPOSITORY" --ref "$RELEASE_REF" --publish "$RELEASE_PUBLISH"
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         id: upload
         with:
           name: plugin-release-helper-${{ github.run_id }}-${{ github.run_attempt }}
@@ -133,7 +133,7 @@ jobs:
         shell: bash
         run: |
           bash -euo pipefail -c "$RELEASE_BUILD \"\$1\"" plugin-build "$RUNNER_TEMP/plugin-release-build"
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         id: upload
         with:
           name: plugin-build-${{ github.run_id }}-${{ github.run_attempt }}
@@ -155,7 +155,7 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
           python-version: '3.13'
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           artifact-ids: ${{ needs.source.outputs.helper_artifact_id }}
           path: ${{ runner.temp }}/plugin-release
@@ -194,7 +194,7 @@ jobs:
                           '--workflow-sha', os.environ['RELEASE_WORKFLOW_SHA'],
                           '--output', str(root / 'assets')], check=True)
           PY
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         id: upload
         with:
           name: plugin-release-${{ github.run_id }}-${{ github.run_attempt }}
@@ -212,7 +212,7 @@ jobs:
       published: ${{ steps.release.outputs.published }}
       release_id: ${{ steps.release.outputs.release_id }}
     steps:
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           artifact-ids: ${{ needs.verify.outputs.artifact_id }}
           path: ${{ runner.temp }}/plugin-release
