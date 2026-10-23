@@ -125,6 +125,11 @@ typography:
     fontWeight: 400
     lineHeight: 42px
     fontVariation: "'opsz' 32"
+  terminal:
+    fontFamily: JetBrains Mono
+    fontSize: 14px
+    fontWeight: 400
+    lineHeight: 21px
 rounded:
   none: 0px
   sm: 6px
@@ -143,6 +148,10 @@ spacing:
   content-max: 1180px
   gutter: 24px
   link-width: 40px
+  terminal-padding: 20px
+  terminal-title-bar: 36px
+  terminal-min-width: 560px
+  hairline: 1px
 components:
   page:
     backgroundColor: "{colors.surface}"
@@ -330,6 +339,36 @@ components:
     size: 40px
   profile-member-row:
     size: 28px
+  terminal:
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.on-surface-muted}"
+    typography: "{typography.terminal}"
+    rounded: "{rounded.md}"
+    padding: "{spacing.terminal-padding}"
+    width: "{spacing.terminal-min-width}"
+  terminal-dark:
+    backgroundColor: "{colors.surface-raised-dark}"
+    textColor: "{colors.on-surface-muted-dark}"
+  terminal-frame:
+    backgroundColor: "{colors.line}"
+    size: "{spacing.hairline}"
+  terminal-frame-dark:
+    backgroundColor: "{colors.line-dark}"
+  terminal-title-bar:
+    backgroundColor: "{colors.neutral}"
+    textColor: "{colors.on-surface-muted}"
+    height: "{spacing.terminal-title-bar}"
+  terminal-title-bar-dark:
+    backgroundColor: "{colors.surface-dark}"
+    textColor: "{colors.on-surface-muted-dark}"
+  terminal-prompt:
+    textColor: "{colors.tertiary}"
+  terminal-prompt-dark:
+    textColor: "{colors.tertiary-dark}"
+  terminal-command:
+    textColor: "{colors.on-surface}"
+  terminal-command-dark:
+    textColor: "{colors.on-surface-dark}"
 ---
 
 # Computer MCP
@@ -409,6 +448,10 @@ spacing follows a 4px unit. Reference pages use a single 720px reading column.
 - **README first screen:** centered, in order: the repository's logo from `.github/assets/logo/`
   in light and dark, its name, its accepted sentence, its badges and a navigation row, as
   `github-readme-design` lays it out.
+- **Terminal demo:** a CLI's Quick look is a recorded session on a card in the surface color, with a
+  neutral title bar carrying the session's title, a hairline frame and 12px corners; prompts in
+  violet, commands in ink and output in muted ink, set in JetBrains Mono, rendered in light and dark
+  by the `github-readme-design` toolchain from the terminal components.
 - **Social preview (1280 × 640):** the icon on the left at the social-preview size, then the
   owner, the title and the repository's complete About sentence, rendered by the
   `github-readme-design` toolchain from the social-preview components and `profile/catalog.json`.
