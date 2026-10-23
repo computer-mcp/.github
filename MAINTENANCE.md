@@ -11,7 +11,24 @@ release procedure and written exceptions.
   MCP Swift SDK fork's default branch is its maintained release branch.
 - Changes land through pull requests with passing checks and are squash merged.
   Merged branches are deleted automatically.
-- Commits are signed.
+- Maintainer commits use the owner's name `showxu` and noreply email
+  `10173746+showxu@users.noreply.github.com`, and are SSH-signed as described
+  under [Signing](#signing). Commits that GitHub makes, such as squash merges
+  and the Computer MCP Updater App's proposals, are signed by GitHub.
+  Dependabot may author changes.
+- Pull request titles and commit subjects follow Conventional Commits:
+  `type(scope)!: subject`, with optional scope and `!`. Types are `build`,
+  `chore`, `ci`, `docs`, `feat`, `fix`, `perf`, `refactor`, `revert`, `style`
+  and `test`.
+- Commits and pull requests carry no tool or agent attribution, such as
+  generated-by lines or co-author trailers for tools; real human co-authors may
+  be credited.
+- Committed content contains no paths from a maintainer's machine, such as
+  `/Users/<name>/`, and no references into local `.agent/` task state.
+- The [source policy](https://github.com/computer-mcp/github-workflows#source-policy)
+  checks pull request titles, added content and added or modified paths, and
+  requires default-branch commits to be verified and committed by GitHub or the
+  owner.
 - Each public repository enforces these rules with a `default branch` ruleset
   that has no bypass: it blocks deletion and force pushes, requires signed
   commits, and accepts only squash-merged pull requests whose required checks
@@ -27,6 +44,26 @@ release procedure and written exceptions.
   their own. A commit made with `git commit` in a workflow is unsigned, and a
   pull request opened with the workflow token waits for manual approval before
   its checks run.
+
+## Signing
+
+Configure signing in each repository checkout with the owner's registered SSH
+signing key; do not change global Git configuration:
+
+```sh
+git config user.name showxu
+git config user.email 10173746+showxu@users.noreply.github.com
+git config gpg.format ssh
+git config user.signingkey ~/.ssh/signing_key.pub
+git config commit.gpgsign true
+git config tag.gpgsign true
+git config gpg.ssh.allowedSignersFile ~/.ssh/allowed_signers
+```
+
+Replace the key and allowed-signers paths with the local signing
+configuration. The allowed-signers file holds the signer's email followed by
+the SSH public key, which is registered as a signing key on GitHub. Verify
+commits with `git verify-commit HEAD`.
 
 ## Licenses
 
@@ -78,8 +115,16 @@ an App or an Actions credential, and update this section in the same change.
 - The root `README.md` is the entry point. `Documentation/Architecture/` holds
   current design truth, `Documentation/Reference/` operating detail and
   `Documentation/Decisions/` accepted rationale.
-- Scripts live in `Scripts/`. Executable scripts use kebab-case names with an
-  extension; imported Python modules use snake_case.
+- Repository-specific automation lives in lowercase `scripts/`, created only
+  when needed. Executable scripts use kebab-case names with an extension;
+  imported Python modules use snake_case. Reusable workflows and the checks
+  more than one repository needs live in
+  [computer-mcp/github-workflows](https://github.com/computer-mcp/github-workflows),
+  which repositories pin by full commit SHA; this repository holds only rules,
+  data, documents and thin callers.
+- GitHub presentation assets live in `.github/assets/`: `logo/` with
+  `logo-light.png` and `logo-dark.png`, `social-preview/social-preview.png`,
+  and `terminal/` or `screenshots/` where the product has them.
 - `AGENTS.md` carries the shared first-principles and canonical-artifact
   sections, then routes agents through the repository's own documents.
   `.agent/` stays local and untracked.
