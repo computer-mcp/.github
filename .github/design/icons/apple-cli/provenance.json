@@ -1,0 +1,28 @@
+{
+  "icon": "apple-cli",
+  "skill": "apple-app-icon-design",
+  "skill_commit": "36707036061a2d0ba012184ef0b6d6820082127f",
+  "command": "python3 skills/apple-app-icon-design/scripts/app_icons.py DESIGN.md --name apple-cli --style liquid-glass --out <dir>",
+  "renderer": "Icon Composer ictool 27.0 (129)",
+  "verified_at": "2026-10-23",
+  "copies": [
+    {
+      "repository": "computer-mcp/apple-cli",
+      "path": ".github/assets/logo/logo-light.png",
+      "output": "renditions/macOS-Default.png",
+      "sha256": "6648ff1ab87e66f4bc727e8865195aacd9e49e619f5af4a7366fbbc7907bdaf2"
+    },
+    {
+      "repository": "computer-mcp/apple-cli",
+      "path": ".github/assets/logo/logo-dark.png",
+      "output": "renditions/macOS-Dark.png",
+      "sha256": "5396c2bc7dd611ac8427b52f259d63fa16973ddadc3f8a75fdbae0926e14957d"
+    },
+    {
+      "repository": "computer-mcp/computer-mcp.github.io",
+      "path": "public/brand/icons/apple-cli.svg",
+      "output": "web/favicon.svg",
+      "sha256": "0e9cfd1e5abf33ca3a50a7a64e5a3cf7382505ff2cac23d7743f0a4a70a3a559"
+    }
+  ]
+}

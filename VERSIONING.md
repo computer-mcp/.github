@@ -86,7 +86,7 @@ filename. It covers every archive and the receipt; it does not hash itself.
 Human acceptance results and their limits belong in the Release notes.
 
 The reusable
-[plugin release workflow](.github/workflows/plugin-release.yml) uses the
+[plugin release workflow](https://github.com/computer-mcp/github-workflows/blob/master/docs/plugin-release.md) uses the
 repository's default-branch `push` run of `.github/workflows/ci.yml` for the
 exact source commit. It selects the latest successful matching run and rechecks
 its latest attempt. The exact `ci_artifact` name selects one artifact

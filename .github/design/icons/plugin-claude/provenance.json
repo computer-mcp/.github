@@ -1,0 +1,28 @@
+{
+  "icon": "plugin-claude",
+  "skill": "apple-framework-icon-design",
+  "skill_commit": "36707036061a2d0ba012184ef0b6d6820082127f",
+  "command": "python3 skills/apple-framework-icon-design/scripts/design_icons.py DESIGN.md --out <dir> --png",
+  "renderer": "design_icons.py with rsvg-convert version 2.63.2",
+  "verified_at": "2026-10-23",
+  "copies": [
+    {
+      "repository": "computer-mcp/plugin-claude",
+      "path": ".github/assets/logo/logo-light.png",
+      "output": "plugin-claude.png",
+      "sha256": "551f053dedbab321153824b8862f4b4ed3a3270fd86d6a04332e0f9f17058433"
+    },
+    {
+      "repository": "computer-mcp/plugin-claude",
+      "path": ".github/assets/logo/logo-dark.png",
+      "output": "plugin-claude.png",
+      "sha256": "551f053dedbab321153824b8862f4b4ed3a3270fd86d6a04332e0f9f17058433"
+    },
+    {
+      "repository": "computer-mcp/computer-mcp.github.io",
+      "path": "public/brand/icons/plugin-claude.svg",
+      "output": "plugin-claude.svg",
+      "sha256": "d2e451cb368fbe69066c6c9afd377a50b37420807029011eeb52f9d45767377d"
+    }
+  ]
+}

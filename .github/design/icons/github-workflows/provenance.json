@@ -1,0 +1,22 @@
+{
+  "icon": "github-workflows",
+  "skill": "apple-framework-icon-design",
+  "skill_commit": "36707036061a2d0ba012184ef0b6d6820082127f",
+  "command": "python3 skills/apple-framework-icon-design/scripts/design_icons.py DESIGN.md --out <dir> --png",
+  "renderer": "design_icons.py with rsvg-convert version 2.63.2",
+  "verified_at": "2026-10-23",
+  "copies": [
+    {
+      "repository": "computer-mcp/github-workflows",
+      "path": ".github/assets/logo/logo-light.png",
+      "output": "github-workflows.png",
+      "sha256": "2841cef0438dd244b341ce5af5b355d15b25b1b23be21d4a93c331d1bacfdd4e"
+    },
+    {
+      "repository": "computer-mcp/github-workflows",
+      "path": ".github/assets/logo/logo-dark.png",
+      "output": "github-workflows.png",
+      "sha256": "2841cef0438dd244b341ce5af5b355d15b25b1b23be21d4a93c331d1bacfdd4e"
+    }
+  ]
+}

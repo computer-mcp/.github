@@ -1,0 +1,165 @@
+{
+  "organization": {
+    "login": "computer-mcp",
+    "name": "Computer MCP",
+    "about": "Computer MCP organization profile, design system and shared community files."
+  },
+  "promise": "Wherever you chat, your computer is there.",
+  "secondary": "ChatGPT and other MCP clients can read and write code, run commands and use your tools on your Mac, with permissions you set on each computer.",
+  "mark": {
+    "light": "assets/mark-light.png",
+    "dark": "assets/mark-dark.png"
+  },
+  "navigation": {
+    "documentation": {
+      "label": "Documentation",
+      "url": "https://github.com/computer-mcp/computer-mcp/tree/master/Documentation"
+    },
+    "contributing": {
+      "label": "Contributing",
+      "url": "https://github.com/computer-mcp/.github/blob/master/CONTRIBUTING.md"
+    },
+    "security": {
+      "label": "Security",
+      "url": "https://github.com/computer-mcp/.github/blob/master/SECURITY.md"
+    },
+    "support": {
+      "label": "Support",
+      "url": "https://github.com/computer-mcp/.github/blob/master/SUPPORT.md"
+    }
+  },
+  "website": "https://computer-mcp.github.io/",
+  "description": "Wherever you chat, your computer is there. Connect ChatGPT and other MCP clients to your computer's tools, with permissions set on each computer.",
+  "groups": [
+    {
+      "title": "Use Computer MCP",
+      "repositories": [
+        {
+          "name": "computer-mcp",
+          "outcome": "Connect ChatGPT and other MCP clients to your Mac's tools, with permissions set on each computer.",
+          "icon": {
+            "light": "https://raw.githubusercontent.com/computer-mcp/computer-mcp/HEAD/.github/assets/logo/logo-light.png",
+            "dark": "https://raw.githubusercontent.com/computer-mcp/computer-mcp/HEAD/.github/assets/logo/logo-dark.png"
+          },
+          "kind": "app",
+          "title": "Computer MCP",
+          "about": "Wherever you chat, your computer is there. A macOS App that connects ChatGPT and other MCP clients to your computer's tools, with permissions set on each computer."
+        },
+        {
+          "name": "homebrew-tap",
+          "outcome": "Install the Computer MCP App and Apple CLI with Homebrew.",
+          "icon": {
+            "light": "https://raw.githubusercontent.com/computer-mcp/computer-mcp/HEAD/.github/assets/logo/logo-light.png",
+            "dark": "https://raw.githubusercontent.com/computer-mcp/computer-mcp/HEAD/.github/assets/logo/logo-dark.png"
+          },
+          "kind": "distribution",
+          "title": "Homebrew Tap",
+          "about": "Homebrew formulae and casks for Computer MCP and Apple CLI."
+        },
+        {
+          "name": "computer-mcp.github.io",
+          "outcome": "Read the product guide, get verified downloads and browse the plugin catalog.",
+          "icon": {
+            "light": "https://raw.githubusercontent.com/computer-mcp/computer-mcp/HEAD/.github/assets/logo/logo-light.png",
+            "dark": "https://raw.githubusercontent.com/computer-mcp/computer-mcp/HEAD/.github/assets/logo/logo-dark.png"
+          },
+          "kind": "website",
+          "title": "Website",
+          "about": "Computer MCP website: product overview, setup guide, verified downloads and plugin catalog."
+        }
+      ]
+    },
+    {
+      "title": "Hand work to coding agents",
+      "repositories": [
+        {
+          "name": "plugin-claude",
+          "outcome": "Run Claude Code from your chat and stream its results back.",
+          "icon": {
+            "light": "https://raw.githubusercontent.com/computer-mcp/plugin-claude/HEAD/.github/assets/logo/logo-light.png",
+            "dark": "https://raw.githubusercontent.com/computer-mcp/plugin-claude/HEAD/.github/assets/logo/logo-dark.png"
+          },
+          "kind": "library",
+          "title": "Claude Code",
+          "about": "Computer MCP family plugin for Claude Code CLI and streaming MCP integration."
+        },
+        {
+          "name": "plugin-codex",
+          "outcome": "Run Codex from your chat and inspect its protocol traffic.",
+          "icon": {
+            "light": "https://raw.githubusercontent.com/computer-mcp/plugin-codex/HEAD/.github/assets/logo/logo-light.png",
+            "dark": "https://raw.githubusercontent.com/computer-mcp/plugin-codex/HEAD/.github/assets/logo/logo-dark.png"
+          },
+          "kind": "library",
+          "title": "Codex",
+          "about": "Computer MCP family plugin for optional Codex execution and protocol inspection."
+        },
+        {
+          "name": "plugin-cursor",
+          "outcome": "Run Cursor's agent from your chat over ACP.",
+          "icon": {
+            "light": "https://raw.githubusercontent.com/computer-mcp/plugin-cursor/HEAD/.github/assets/logo/logo-light.png",
+            "dark": "https://raw.githubusercontent.com/computer-mcp/plugin-cursor/HEAD/.github/assets/logo/logo-dark.png"
+          },
+          "kind": "library",
+          "title": "Cursor",
+          "about": "Computer MCP family plugin for Cursor Agent CLI and ACP integration."
+        }
+      ]
+    },
+    {
+      "title": "Add tools for your Mac",
+      "repositories": [
+        {
+          "name": "plugin-computer-use",
+          "outcome": "Let your chat see and act on the apps on your Mac.",
+          "icon": {
+            "light": "https://raw.githubusercontent.com/computer-mcp/plugin-computer-use/HEAD/.github/assets/logo/logo-light.png",
+            "dark": "https://raw.githubusercontent.com/computer-mcp/plugin-computer-use/HEAD/.github/assets/logo/logo-dark.png"
+          },
+          "kind": "library",
+          "title": "Computer Use",
+          "about": "Computer MCP family plugin for native desktop observation and actions."
+        },
+        {
+          "name": "plugin-swift-format",
+          "outcome": "Format and lint Swift code with a verified swift-format.",
+          "icon": {
+            "light": "https://raw.githubusercontent.com/computer-mcp/plugin-swift-format/HEAD/.github/assets/logo/logo-light.png",
+            "dark": "https://raw.githubusercontent.com/computer-mcp/plugin-swift-format/HEAD/.github/assets/logo/logo-dark.png"
+          },
+          "kind": "library",
+          "title": "Swift Format",
+          "about": "Computer MCP family plugin for verified Swift formatting and linting."
+        },
+        {
+          "name": "apple-cli",
+          "outcome": "Use Notes, Reminders, Calendar and other Apple apps from the terminal or an MCP client.",
+          "icon": {
+            "light": "https://raw.githubusercontent.com/computer-mcp/apple-cli/HEAD/.github/assets/logo/logo-light.png",
+            "dark": "https://raw.githubusercontent.com/computer-mcp/apple-cli/HEAD/.github/assets/logo/logo-dark.png"
+          },
+          "kind": "tool",
+          "title": "Apple CLI",
+          "about": "A local macOS CLI and MCP server for Apple apps."
+        }
+      ]
+    },
+    {
+      "title": "Maintain the family",
+      "repositories": [
+        {
+          "name": "github-workflows",
+          "outcome": "Run the same checks and releases in every Computer MCP repository.",
+          "icon": {
+            "light": "https://raw.githubusercontent.com/computer-mcp/github-workflows/HEAD/.github/assets/logo/logo-light.png",
+            "dark": "https://raw.githubusercontent.com/computer-mcp/github-workflows/HEAD/.github/assets/logo/logo-dark.png"
+          },
+          "kind": "library",
+          "title": "Shared Workflows",
+          "about": "Reusable workflows and checks for Computer MCP repositories: source policy, the organization check, the shared plugin runtime and plugin releases."
+        }
+      ]
+    }
+  ]
+}

@@ -1,86 +1,85 @@
 # Computer MCP organization
 
 This repository owns the organization profile, the visual identity and the
-conventions every Computer MCP repository shares.
+conventions every Computer MCP repository shares. It holds rules, data and
+documents; reusable workflows and their checks live in
+[computer-mcp/github-workflows](https://github.com/computer-mcp/github-workflows).
 
-- `profile/README.md` is the public organization entry point.
-- `MAINTENANCE.md` holds the cross-repository conventions. The community files
-  (`CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `GOVERNANCE.md`, `SECURITY.md`,
-  `SUPPORT.md`, `.github/ISSUE_TEMPLATE/` and the pull request template) apply
-  to every repository without its own version.
+- `profile/README.md` is the public organization entry point, generated from
+  `profile/catalog.json`. The catalog lists each public repository with its
+  outcome sentence, icon, kind, title and About sentence, grouped by the
+  reader's job. `profile/assets/` holds the organization's mark and avatar.
+- `MAINTENANCE.md` holds the cross-repository conventions and the declared
+  GitHub settings. The community files (`CODE_OF_CONDUCT.md`,
+  `CONTRIBUTING.md`, `GOVERNANCE.md`, `SECURITY.md`, `SUPPORT.md`,
+  `.github/ISSUE_TEMPLATE/` and the pull request template) apply to every
+  repository without its own version.
 - [VERSIONING.md](VERSIONING.md) holds shared version, tag, release-record,
   plugin compatibility and dependency rules.
-- `Scripts/check-settings.py` compares the organization's live GitHub settings,
-  Apps and Actions credentials with `MAINTENANCE.md`.
 - `DESIGN.md` is the design system: tokens, components, the icon family and
-  composition rules.
-- `Brand/` holds the renderer, its configuration, the App icon's original layers
-  in `Brand/app-icon/layers/` and the rendered `Exports/` with their
-  `manifest.json`.
-- `.github/workflows/brand-check.yml` is the reusable workflow each repository
-  calls to verify its brand lock.
-- [PluginRuntime/](PluginRuntime/README.md) holds the shared Python plugin
-  runtime and adoption instructions. `Scripts/plugin-runtime.py` syncs and
-  checks copies; `.github/workflows/plugin-runtime.yml` verifies consumers
-  against the runtime digest fixed by their workflow pin.
-- `.github/workflows/plugin-release.yml` verifies and publishes reproducible
-  plugin releases. The [consumer guide](Documentation/Reference/PluginRelease.md)
-  describes its caller, inputs, outputs and recovery operations.
+  composition rules, with the icon entries in its Iconography section.
+- `.github/design/icons/<name>/` holds each icon's original layers, where it
+  has any, and its `provenance.json`; `.github/design/fonts/` holds the bundled
+  fonts with their licenses.
+- `.github/assets/social-preview/social-preview.png` is this repository's own
+  social preview.
 
 Product meaning and copy belong to the main repository's
 [ProductIdentity](https://github.com/computer-mcp/computer-mcp/blob/master/Documentation/Architecture/ProductIdentity.md).
-Text rendered into images (`Brand/config.json` `copy` and `members`) must match it.
+Text in the catalog and in rendered images must match it, and each
+repository's `about` equals its GitHub About.
 
-## Updating the brand
+## Updating icons
 
-The icons come from two generators in the
-[showxu/skills](https://github.com/showxu/skills) repository. Install Icon
-Composer from Xcode and set `APP_ICONS_SCRIPT` to the `apple-app-icon-design`
-generator (`skills/apple-app-icon-design/scripts/app_icons.py`), which renders
-the App icons; it finds Icon Composer's `ictool` in the selected Xcode
-installation, and `IC_TOOL` selects another export-capable renderer. Set
-`FRAMEWORK_ICONS_SCRIPT` to the `apple-framework-icon-design` generator
-(`skills/apple-framework-icon-design/scripts/design_icons.py`), which renders
-the component icons. The manifest records the generators' SHA-256 digests next
-to the renderer versions. Python 3 and `rsvg-convert` are also required.
+Icons come from two generators in the
+[showxu/skills](https://github.com/showxu/skills) repository:
+`skills/apple-app-icon-design/scripts/app_icons.py` renders the App icons
+through Icon Composer from Xcode, and
+`skills/apple-framework-icon-design/scripts/design_icons.py` renders the
+component icons. Python 3 and `rsvg-convert` are also required.
 
-1. Edit `DESIGN.md` or `Brand/config.json`.
-2. Render: `npm ci --prefix Brand`, `npx --prefix Brand playwright install --only-shell chromium`,
-   then `node Brand/render.mjs`.
-3. Preview each macOS rendition of the App icon with Icon Composer's `ictool
-   Brand/Exports/app/AppIcon.icon --export-image --platform macOS --rendition <name>
-   --output-file Brand/.cache/app-icon-preview.png --width 1024 --height 1024
-   --scale 1 --design-generation <generation>`
-   for Default, Dark, ClearLight, ClearDark, TintedLight and TintedDark, using
-   the `design_generation` from the Iconography entry. Review the other App
-   icons with the generator's contact sheet:
-   `python3 "$APP_ICONS_SCRIPT" DESIGN.md --name <name> --style liquid-glass --out Brand/.cache/<name>`.
-4. Check: `npm --prefix Brand run lint`, `python3 "$APP_ICONS_SCRIPT" DESIGN.md --name <name> --lint`
-   for each App icon, `python3 "$FRAMEWORK_ICONS_SCRIPT" DESIGN.md --lint` and
-   `python3 Brand/brand.py check`.
-5. Commit `DESIGN.md`, `Brand/` and the exports together.
+1. Edit the entry in DESIGN.md's Iconography section, and the layers in
+   `.github/design/icons/<name>/layers/` for an App icon.
+2. Lint: `python3 <skills>/apple-framework-icon-design/scripts/design_icons.py DESIGN.md --lint`
+   and `python3 <skills>/apple-app-icon-design/scripts/app_icons.py DESIGN.md --name <name> --lint`.
+3. Render into an ignored directory: `design_icons.py DESIGN.md --out <dir> --png`,
+   or `app_icons.py DESIGN.md --name <name> --style liquid-glass --out <dir>`,
+   and review the App icon in every macOS rendition with Icon Composer.
+4. Copy each consumed file into its repository through that repository's
+   pull request and record it in the icon's `provenance.json`: the
+   repository, path, generator output path and SHA-256, with the skill
+   commit, command, renderer and verification date.
 
-## Delivering to a repository
+Member logos are `.github/assets/logo/logo-light.png` and `logo-dark.png`. A
+component icon uses the generator's PNG for both; an App icon uses its macOS
+Default and Dark renditions. The Homebrew tap and the website use the App
+icon.
 
-`python3 Brand/brand.py sync <checkout>` copies the files that repository uses,
-removes files its previous lock delivered and no longer needs, rewrites its
-`.github/brand/brand.lock.json`, and verifies the lock. Images that ship with a
-repository's packaged documentation live in `Documentation/Brand/`; social
-previews stay in `.github/brand/`. Commit the result through a pull request in
-that repository. Each repository's CI calls the shared check:
+## Profile and social previews
 
-```yaml
-jobs:
-  brand:
-    uses: computer-mcp/.github/.github/workflows/brand-check.yml@<commit>
+The `github-readme-design` toolchain in the skills repository
+(`skills/github-readme-design/scripts`) renders the profile and every social
+preview from DESIGN, the catalog and the bundled fonts. Install it into an
+ignored directory with `npm ci --ignore-scripts`, then:
+
+```sh
+node <toolchain>/src/cli.ts design lint --design DESIGN.md
+node <toolchain>/src/cli.ts profile render --design DESIGN.md --catalog profile/catalog.json --out profile/README.md
+node <toolchain>/src/cli.ts social-preview render --design DESIGN.md --fonts .github/design/fonts \
+  --catalog profile/catalog.json --repository <name> --icon <logo-light.png> \
+  --out <repository>/.github/assets/social-preview/social-preview.png
 ```
+
+`profile check` and `social-preview check` compare the committed files
+without overwriting them. A repository's social preview is committed in that
+repository and rendered with `--repository .github` for this one.
 
 ## Social previews and avatar
 
 GitHub has no API for a repository's social preview or the organization
-avatar. After a repository's brand pull request merges, upload its
-`.github/brand/social.png` in the repository's settings under Social preview.
-A public repository's preview is current when the image at its GraphQL
-`openGraphImageUrl` has the same SHA-256 as that file. Upload
-`profile/brand/avatar.png` as the organization avatar in the organization's
-settings.
+avatar. After a repository's pull request merges, upload its
+`.github/assets/social-preview/social-preview.png` in the repository's
+settings under Social preview. A public repository's preview is current when
+the image at its GraphQL `openGraphImageUrl` has the same SHA-256 as that
+file. Upload `profile/assets/avatar.png` as the organization avatar in the
+organization's settings.

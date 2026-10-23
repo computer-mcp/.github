@@ -1,0 +1,28 @@
+{
+  "icon": "plugin-swift-format",
+  "skill": "apple-framework-icon-design",
+  "skill_commit": "36707036061a2d0ba012184ef0b6d6820082127f",
+  "command": "python3 skills/apple-framework-icon-design/scripts/design_icons.py DESIGN.md --out <dir> --png",
+  "renderer": "design_icons.py with rsvg-convert version 2.63.2",
+  "verified_at": "2026-10-23",
+  "copies": [
+    {
+      "repository": "computer-mcp/plugin-swift-format",
+      "path": ".github/assets/logo/logo-light.png",
+      "output": "plugin-swift-format.png",
+      "sha256": "43c0a6a3087f1c013659be0a882cbca162a594d20e42b2d3b78b430565821fc2"
+    },
+    {
+      "repository": "computer-mcp/plugin-swift-format",
+      "path": ".github/assets/logo/logo-dark.png",
+      "output": "plugin-swift-format.png",
+      "sha256": "43c0a6a3087f1c013659be0a882cbca162a594d20e42b2d3b78b430565821fc2"
+    },
+    {
+      "repository": "computer-mcp/computer-mcp.github.io",
+      "path": "public/brand/icons/plugin-swift-format.svg",
+      "output": "plugin-swift-format.svg",
+      "sha256": "a8f315bc88ece6cfffd5baa4cba8c1b21f78ec6f0b6a7ee0093b2f8fc01332c3"
+    }
+  ]
+}
