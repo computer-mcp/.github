@@ -33,5 +33,5 @@
 <h2>Maintain the family</h2>
 
 <table>
-<tr><td><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/computer-mcp/github-workflows/HEAD/.github/assets/logo/logo-dark.png"><img src="https://raw.githubusercontent.com/computer-mcp/github-workflows/HEAD/.github/assets/logo/logo-light.png" width="40" height="40" alt="github-workflows icon"></picture></td><td><strong><a href="https://github.com/computer-mcp/github-workflows">github-workflows</a></strong><br>Shared CI, source policy and release workflows for the family&#x27;s repositories.</td></tr>
+<tr><td><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/computer-mcp/github-workflows/HEAD/.github/assets/logo/logo-dark.png"><img src="https://raw.githubusercontent.com/computer-mcp/github-workflows/HEAD/.github/assets/logo/logo-light.png" width="40" height="40" alt="github-workflows icon"></picture></td><td><strong><a href="https://github.com/computer-mcp/github-workflows">github-workflows</a></strong><br>Run the same checks and releases in every Computer MCP repository.</td></tr>
 </table>
