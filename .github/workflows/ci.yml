@@ -36,3 +36,11 @@ jobs:
           repository: .github
           icon: profile/assets/mark-light.png
           assets: .github/assets/social-preview
+  organization:
+    permissions:
+      contents: read
+    uses: computer-mcp/github-workflows/.github/workflows/organization.yml@d65bc20504f39c3a30232d67043abeca43d2c7b1
+    with:
+      # The catalog under review must match the live inventory and About sentences.
+      declaration-revision: ${{ github.event.pull_request.head.sha || github.sha }}
+      scope: membership
