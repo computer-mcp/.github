@@ -122,6 +122,10 @@ const check = (color) => `<svg width="12" height="12" viewBox="0 0 12 12" style=
 // A member's mark on the computer's screen: its icon's glyph flat in ink, with inlaid parts in the
 // screen's amber. Framework glyphs inlay their surface parts; an app icon names its layers in config.
 function mark(member, p, size) {
+  if (member.installs) {
+    const side = Math.round(size * 0.68);
+    return `<div style="display:flex;gap:${Math.round(size * 0.08)}px">${member.installs.map((name) => `<img src="${icons[name]}" style="width:${side}px;height:${side}px">`).join('')}</div>`;
+  }
   const ink = c['on-signal'];
   const entry = iconography.icons[member.repository];
   if (entry) {
@@ -139,12 +143,16 @@ function mark(member, p, size) {
   return `<svg width="${size}" height="${size}" viewBox="${box.join(' ')}">${art(inked, ink)}${art(inlay, p.signal)}</svg>`;
 }
 
+// The code-block component carrying a member's commands, each behind an amber prompt.
+const commandCard = (p, commands, style) => `<div style="position:absolute;z-index:2;${style};background:${c.primary};color:${c.neutral};border:1px solid ${p.dark ? p.line : c.primary};border-radius:${r.md};padding:14px 16px;box-shadow:${p.shadow};${typo('code-md', { fontSize: '13px' })};white-space:nowrap">
+    ${commands.map((x) => `<div><span style="color:${p.signal}">$</span> ${esc(x)}</div>`).join('')}</div>`;
+
 function header(faces, member, mode, locale = 'en') {
   const p = palette(mode);
   const isApp = member.repository === 'computer-mcp';
   const icon = icons[member.repository];
   const screen = isApp ? '' : mark(member, p, 84);
-  const ask = esc(config.copy.request[locale] ?? config.copy.request.en);
+  const ask = esc(member.request ?? config.copy.request[locale] ?? config.copy.request.en);
   return page(faces, 1280, 320, `
     body{background:${p.bg};color:${p.fg}}
     .id{position:absolute;left:64px;top:0;height:320px;display:flex;align-items:center;gap:36px;z-index:2}
@@ -156,7 +164,7 @@ function header(faces, member, mode, locale = 'en') {
     .req div{${typo('body-md', { fontSize: '15px', lineHeight: 1.35 })};word-break:keep-all;background:${p.signal};color:${c['on-signal']};border-radius:16px 16px 6px 16px;padding:9px 13px}
   `, `${link(p, [[972, 79], [1120, 79], [1120, 116]], 22)}
     ${computer(p, { cx: 1120, top: 116, h: 184 }, screen)}
-    <div class="req"><div>${ask}</div></div>
+    ${member.commands ? commandCard(p, member.commands, 'right:302px;top:44px') : `<div class="req"><div>${ask}</div></div>`}
     <div class="id"><img src="${icon}"><div>${member.eyebrow ? `<div class="eyebrow">${esc(member.eyebrow)}</div>` : ''}<h1>${esc(member.title)}</h1><p class="line">${esc(member.line[locale])}</p></div></div>`);
 }
 
@@ -205,10 +213,11 @@ function memberSocial(faces, member) {
     .url{position:absolute;left:80px;bottom:76px;${typo('label-lg')};color:${p.muted}}
     .bubble{position:absolute;z-index:2;background:${p.raised};border:1px solid ${p.line};border-radius:28px;box-shadow:${p.shadow};display:flex;align-items:center;justify-content:center;gap:16px}
     .bubble i{width:18px;height:18px;border-radius:50%;background:${c['on-surface']}}
-  `, `${link(p, [[B.x + B.w - 24, B.y + B.h / 2], [cx, B.y + B.h / 2], [cx, top + 4]], 34)}
+  `, `${member.commands ? `${link(p, [[1000, 145], [cx, 145], [cx, top + 4]], 34)}
+    ${commandCard(p, member.commands, 'right:256px;top:110px')}` : `${link(p, [[B.x + B.w - 24, B.y + B.h / 2], [cx, B.y + B.h / 2], [cx, top + 4]], 34)}
     <svg style="position:absolute;left:0;top:0;z-index:2;overflow:visible" width="1280" height="640"><defs><filter id="lift" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="18" stdDeviation="16" flood-color="#0a101e" flood-opacity=".22"/></filter></defs>
       <path filter="url(#lift)" d="M${B.x + 28} ${B.y} H${B.x + B.w - 28} Q${B.x + B.w} ${B.y} ${B.x + B.w} ${B.y + 28} V${B.y + B.h - 28} Q${B.x + B.w} ${B.y + B.h} ${B.x + B.w - 28} ${B.y + B.h} H${B.x + 96} L${B.x + 30} ${B.y + B.h + 46} L${B.x + 44} ${B.y + B.h} H${B.x + 28} Q${B.x} ${B.y + B.h} ${B.x} ${B.y + B.h - 28} V${B.y + 28} Q${B.x} ${B.y} ${B.x + 28} ${B.y} Z" fill="${p.raised}" stroke="${p.line}"/></svg>
-    <div class="bubble" style="left:${B.x}px;top:${B.y}px;width:${B.w}px;height:${B.h}px;background:none;border:0;box-shadow:none"><i></i><i></i><i></i></div>
+    <div class="bubble" style="left:${B.x}px;top:${B.y}px;width:${B.w}px;height:${B.h}px;background:none;border:0;box-shadow:none"><i></i><i></i><i></i></div>`}
     ${computer(p, { cx, top, h: 286 }, mark(member, p, 120))}
     <div class="top"><img src="${icon}"><div><div class="eyebrow">${esc(member.eyebrow)}</div><b>${esc(member.title)}</b></div></div>
     <h1>${esc(member.line.en)}</h1>

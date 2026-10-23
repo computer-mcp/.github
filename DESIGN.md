@@ -409,7 +409,8 @@ layers with continuous corners; component icons take the framework generator's s
   glass tiles in the colors of Notes, Calendar and Mail, the fourth a dark terminal with a prompt.
 - **Screen glyph:** in a member's compositions the computer's screen shows its icon's glyph flat in
   ink, with inlaid details in the screen's amber: a framework glyph's surface parts, and Apple
-  CLI's prompt. Icons never carry the chat card or the link.
+  CLI's prompt. The Homebrew tap's screen shows the icons of the App and Apple CLI it installs.
+  Icons never carry the chat card or the link.
 - **Never:** SF Symbols or SF Pro inside brand artwork. The swift-sdk fork keeps its upstream
   identity.
 
@@ -1197,7 +1198,10 @@ face units.
 - **Primary button:** violet fill, white label in the interface sans, 12px radius.
 - **Secondary button:** raised surface with a 1px line border.
 - **Chat card:** raised surface, 20px radius, a title row naming the chat, and the request as an
-  amber bubble with ink text.
+  amber bubble with ink text. Each member's request is one it serves, from `Brand/config.json`.
+- **Command card:** the code block carrying real commands behind amber prompts, with a 1px line
+  border in dark mode; it takes the chat card's place for the Homebrew tap, which people reach
+  from a terminal.
 - **Computer:** the App icon's machine drawn flat — ivory case with a hairline edge, recessed chin,
   amber screen carrying the member glyph or, for the App, the command and its result. Capability
   chips beside the composition name Files, Shell, CLI, MCP, Skills and Computer Use.
@@ -1211,7 +1215,8 @@ face units.
 
 - Do keep amber for the active path and violet for actions and links; never set amber text on a
   light surface.
-- Do show both the chat and the computer whenever the link appears.
+- Do show both the request — a chat, or a command card — and the computer whenever the link
+  appears.
 - Do draw the computer from the App icon's layers; never redraw or restyle it per surface.
 - Do render every image text with the bundled OFL fonts, in both light and dark.
 - Don't use gradients on cards or the computer, or rotate them.
