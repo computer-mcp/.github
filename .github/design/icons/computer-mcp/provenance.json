@@ -3,7 +3,7 @@
   "skill": "apple-app-icon-design",
   "skill_commit": "36707036061a2d0ba012184ef0b6d6820082127f",
   "command": "python3 skills/apple-app-icon-design/scripts/app_icons.py DESIGN.md --name computer-mcp --style liquid-glass --out <dir>",
-  "renderer": "{\n  \"bundle-version\" : \"129\",\n  \"short-bundle-version\" : \"27.0\"\n}",
+  "renderer": "Icon Composer ictool 27.0 (129)",
   "verified_at": "2026-10-23",
   "copies": [
     {

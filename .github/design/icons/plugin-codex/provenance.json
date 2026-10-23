@@ -3,7 +3,7 @@
   "skill": "apple-framework-icon-design",
   "skill_commit": "36707036061a2d0ba012184ef0b6d6820082127f",
   "command": "python3 skills/apple-framework-icon-design/scripts/design_icons.py DESIGN.md --out <dir> --png",
-  "renderer": "design_icons.py with rsvg-convert",
+  "renderer": "design_icons.py with rsvg-convert version 2.63.2",
   "verified_at": "2026-10-23",
   "copies": [
     {

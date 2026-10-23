@@ -150,7 +150,7 @@
       "repositories": [
         {
           "name": "github-workflows",
-          "outcome": "Shared CI, source policy and release workflows for the family's repositories.",
+          "outcome": "Run the same checks and releases in every Computer MCP repository.",
           "icon": {
             "light": "https://raw.githubusercontent.com/computer-mcp/github-workflows/HEAD/.github/assets/logo/logo-light.png",
             "dark": "https://raw.githubusercontent.com/computer-mcp/github-workflows/HEAD/.github/assets/logo/logo-dark.png"
