@@ -41,11 +41,6 @@ colors:
   caution: "#FFCC00"
   focus: "#5A4BF5"
   focus-dark: "#8B80FF"
-  icon-body: "#17161F"
-  icon-plane-back: "#2B2740"
-  icon-plane-mid: "#FFB347"
-  icon-plane-front: "#F4EFE3"
-  icon-glyph: "#17161F"
 typography:
   headline-display:
     fontFamily: Inter
@@ -118,7 +113,6 @@ rounded:
   md: 12px
   lg: 20px
   xl: 28px
-  plane: 64px
   full: 9999px
 spacing:
   unit: 4px
@@ -295,19 +289,6 @@ components:
   focus-ring-dark:
     backgroundColor: "{colors.focus-dark}"
     width: 2px
-  component-icon-body:
-    backgroundColor: "{colors.icon-body}"
-    size: 824px
-  component-icon-plane-workspace:
-    backgroundColor: "{colors.icon-plane-back}"
-    rounded: "{rounded.plane}"
-  component-icon-plane-capabilities:
-    backgroundColor: "{colors.icon-plane-mid}"
-    rounded: "{rounded.plane}"
-  component-icon-plane-result:
-    backgroundColor: "{colors.icon-plane-front}"
-    textColor: "{colors.icon-glyph}"
-    rounded: "{rounded.plane}"
 ---
 
 # Computer MCP
@@ -339,18 +320,18 @@ About window.
 
 ## Colors
 
-- **Ink (#17161F):** text, the component icon body and code surfaces. Never pure black.
+- **Ink (#17161F):** text, the glyph on the computer's screen and code surfaces. Never pure black.
 - **Slate (#5F5B70):** secondary text, captions and metadata.
 - **Violet (#5A4BF5; #8B80FF on dark):** actions and navigation — primary buttons, links and the
   App icon's field. Labels on violet are white (#121019 on the dark-mode violet). Hover darkens the
   fill to **#4A3BE0**.
 - **Amber (#FFB347; #FFC266 on dark):** the active path — the chat request, the active link and the
-  screen it lights — plus the App icon's screen and the middle plane of component icons. Labels on
-  amber are ink; amber is never used as text on light surfaces.
+  screen it lights — plus the App icon's screen. Labels on amber are ink; amber is never used as
+  text on light surfaces.
 - **Ivory (#F4EFE3):** chips, the computer's case (**#DDD5C3** edge, **#E3DAC6** chin; **#E9E2D2**,
-  **#BFB6A3** and **#CFC5B0** on dark), the front plane of component icons and text on code
-  surfaces.
-- **Violet ink (#2B2740):** the back plane of component icons.
+  **#BFB6A3** and **#CFC5B0** on dark) and text on code surfaces.
+- **Product colors:** each component icon takes the main color of the product it serves, as listed
+  in the [Icon Family](#icon-family); these colors appear only in those icons.
 - **Link rail (#E6E2FF; #2A2547 on dark):** the band under the active link.
 - **Surfaces:** page **#FBF8F1** and raised **#FFFFFF** in light mode; **#121019** and **#1C1A26**
   in dark mode, with lines **#E7E1D3** and **#2C2938**.
@@ -410,34 +391,44 @@ a 1px line border.
 
 Cards use a 20px radius; buttons 12px; chips 6px; packets are fully rounded. The link is a
 straight band with round caps that bends at most once. The computer is drawn from the App icon's own
-layers with continuous corners; component icons use a 64px plane radius on the 824px grid at 1024
-scale.
+layers with continuous corners; component icons take the framework generator's slab geometry.
 
 ## Icon Family
 
-- **Structure:** component icons are an ink body carrying a centred three-plane stack — violet-ink
-  workspace, amber capabilities, ivory result — each plane 58px up and to the right of the one
-  beneath it. Icons never carry the chat card or the link; those appear only in compositions around the icons. No isometric projection; avoid any resemblance to cube marks.
-- **Glyph:** the front plane carries one ink glyph with a 9% stroke; the same glyph appears on the
-  computer's screen in that member's compositions. Each component swaps only this glyph:
-  computer-use pointer, apple-cli prompt, codex braces, swift-format aligned bars, claude speech
-  bracket, cursor text caret, trae play wedge, homebrew-tap install tray.
-- **App icon:** an original compact computer in ivory glass with an amber screen and a recessed
-  chin, over a violet design grid; defined by the `computer-mcp` entry in
-  [Iconography](#iconography) and delivered as an Icon Composer document plus a legacy
-  `AppIcon.icns` for macOS 14 and 15.
-- **Never:** vendor logos, the Apple or Swift logo, SF Symbols or SF Pro inside brand artwork. The
-  swift-sdk fork keeps its upstream identity.
+- **Component icons:** plugins and the Homebrew tap are framework slabs, generated from the `icons`
+  entries in [Iconography](#iconography) with the `apple-framework-icon-design` generator. Each slab
+  takes the main color of the product it serves, and its three bands deepen from it: Claude's
+  terracotta, Codex's blue, Cursor's graphite, Computer Use's sky-to-pink, Swift's orange,
+  Homebrew's amber, and TRAE's black with green. The face carries the App's design grid and one
+  glyph that follows the product's own mark: the Claude spark, the Codex cloud with a prompt, the
+  Cursor cube, the Computer Use pointer, the Swift bird, the Homebrew mug and the TRAE pixel face.
+- **App icons:** executables have Liquid Glass app icons on the App's violet field and design grid,
+  generated from the `app_icons` entries with the `apple-app-icon-design` generator. The App is an
+  original compact computer in ivory glass with an amber screen and a recessed chin, delivered as
+  an Icon Composer document plus a legacy `AppIcon.icns` for macOS 14 and 15. Apple CLI is four
+  glass tiles in the colors of Notes, Calendar and Mail, the fourth a dark terminal with a prompt.
+- **Screen glyph:** in a member's compositions the computer's screen shows its icon's glyph flat in
+  ink, with inlaid details in the screen's amber: a framework glyph's surface parts, and Apple
+  CLI's prompt. Icons never carry the chat card or the link.
+- **Never:** SF Symbols or SF Pro inside brand artwork. The swift-sdk fork keeps its upstream
+  identity.
 
 ## Iconography
 
-The App icon is a Liquid Glass icon generated from this entry with the `apple-app-icon-design`
-generator. Its layers are original artwork in `Brand/app-icon/layers/`: a design grid, the
-computer's recessed chin, its amber screen light and its ivory glass case. Accepted lint findings,
-each by design: four groups keep the grid, chin, screen light and case in separate materials; the
-grid lines run to the outline, so 0.7% of the grid falls outside the shape; the grid lines are
-hairlines that fade below 32 px; the chin and the case sit over the white grid; and the case and the
-chin share the ivory lightness, separated by depth rather than tone.
+App icons are Liquid Glass icons generated from the `app_icons` entries with the
+`apple-app-icon-design` generator. Their layers are original artwork in `Brand/app-icon/layers/`,
+and both share its design grid. The App's layers are the computer's recessed chin, its amber screen
+light and its ivory glass case; Apple CLI's are its three app tiles, its terminal tile and its
+prompt. Accepted lint findings, each by design: four groups keep the grid and three materials
+apart in each icon (the App's chin, screen light and case; Apple CLI's app tiles, terminal glass
+and prompt); the grid lines run to the outline, so 0.7% of the grid falls outside the shape; the
+grid lines are hairlines that fade below 32 px; the App's chin and case sit over the white grid; and
+the App's case and chin share the ivory lightness, separated by depth rather than tone.
+
+Component icons are generated from the `icons` entries with the `apple-framework-icon-design`
+generator; their palette lint is clean. Glyphs are layered: each part has its own color, and parts
+marked `surface` lie only on the glyph's top. The face texture is the App's design grid redrawn in
+face units.
 
 ```json
 {
@@ -542,6 +533,660 @@ chin share the ivory lightness, separated by depth rather than tone.
           "design_generation": 27
         }
       }
+    },
+    "apple-cli": {
+      "background": "#5A4BF5",
+      "gradient": true,
+      "groups": [
+        {
+          "name": "Grid",
+          "layers": [
+            {
+              "source": "Brand/app-icon/layers/grid.svg",
+              "name": "grid",
+              "fill": {
+                "solid": "#FFFFFF"
+              },
+              "opacity": 0.2
+            }
+          ],
+          "shadow": {
+            "kind": "none",
+            "opacity": 0
+          },
+          "specular": false
+        },
+        {
+          "name": "Apps",
+          "layers": [
+            {
+              "source": "Brand/app-icon/layers/apple-cli-notes.svg",
+              "name": "apple-cli-notes",
+              "fill": {
+                "automatic-gradient": "#FFD60A"
+              }
+            },
+            {
+              "source": "Brand/app-icon/layers/apple-cli-calendar.svg",
+              "name": "apple-cli-calendar",
+              "fill": {
+                "automatic-gradient": "#FF453A"
+              }
+            },
+            {
+              "source": "Brand/app-icon/layers/apple-cli-mail.svg",
+              "name": "apple-cli-mail",
+              "fill": {
+                "automatic-gradient": "#0A84FF"
+              }
+            }
+          ],
+          "shadow": {
+            "kind": "layer-color",
+            "opacity": 0.5
+          },
+          "translucency": {
+            "enabled": true,
+            "value": 0.1
+          }
+        },
+        {
+          "name": "Terminal",
+          "layers": [
+            {
+              "source": "Brand/app-icon/layers/apple-cli-terminal.svg",
+              "name": "apple-cli-terminal",
+              "fill": {
+                "automatic-gradient": "#1D1B26D9"
+              }
+            }
+          ],
+          "shadow": {
+            "kind": "neutral",
+            "opacity": 0.5
+          },
+          "translucency": {
+            "enabled": true,
+            "value": 0.35
+          },
+          "blur-material": 0.5,
+          "refractivity": {
+            "enabled": true,
+            "strength": 0.6,
+            "depth": 0
+          }
+        },
+        {
+          "name": "Prompt",
+          "layers": [
+            {
+              "source": "Brand/app-icon/layers/apple-cli-prompt.svg",
+              "name": "apple-cli-prompt",
+              "fill": {
+                "automatic-gradient": "#F6EEDB"
+              }
+            }
+          ],
+          "shadow": {
+            "kind": "layer-color",
+            "opacity": 0.5
+          },
+          "translucency": {
+            "enabled": true,
+            "value": 0.1
+          }
+        }
+      ],
+      "styles": {
+        "liquid-glass": {
+          "design_generation": 27
+        }
+      }
+    }
+  },
+  "icons": {
+    "plugin-claude": {
+      "hue": 40,
+      "bands": 3,
+      "glyph_rotation": -45,
+      "texture": {
+        "d": "M0 -0.6 V0.6 M-0.6 0 H0.6 M-0.25 -0.25 V0.25 M-0.25 -0.25 H0.25 M0.25 -0.25 V0.25 M-0.25 0.25 H0.25 M0.25 0.25 V0.452 Q0.25 0.47 0.268 0.47 H0.31 Q0.47 0.47 0.47 0.31 V0.25 Z M0.25 -0.25 V-0.452 Q0.25 -0.47 0.268 -0.47 H0.31 Q0.47 -0.47 0.47 -0.31 V-0.25 Z M-0.25 0.25 V0.452 Q-0.25 0.47 -0.268 0.47 H-0.31 Q-0.47 0.47 -0.47 0.31 V0.25 Z M-0.25 -0.25 V-0.452 Q-0.25 -0.47 -0.268 -0.47 H-0.31 Q-0.47 -0.47 -0.47 -0.31 V-0.25 Z",
+        "width": 0.009
+      },
+      "texture_opacity": 0.16,
+      "custom_glyph": {
+        "layers": [
+          {
+            "d": "M0.023 -0.039 L0.121 -0.886 A0.09 0.09 0 0 0 -0.059 -0.893 L-0.021 -0.041 Z M0.039 -0.023 L0.407 -0.531 A0.075 0.075 0 0 0 0.278 -0.609 L0.002 -0.046 Z M0.046 -0.0 L0.78 -0.335 A0.085 0.085 0 0 0 0.698 -0.484 L0.024 -0.039 Z M0.038 0.025 L0.714 0.158 A0.095 0.095 0 0 0 0.731 -0.031 L0.042 -0.018 Z M0.022 0.04 L0.728 0.568 A0.08 0.08 0 0 0 0.815 0.434 L0.046 0.003 Z M-0.005 0.045 L0.19 0.626 A0.07 0.07 0 0 0 0.318 0.571 L0.036 0.028 Z M-0.026 0.037 L-0.179 0.846 A0.09 0.09 0 0 0 -0.0 0.865 L0.018 0.042 Z M-0.04 0.022 L-0.459 0.56 A0.08 0.08 0 0 0 -0.325 0.647 L-0.003 0.046 Z M-0.046 -0.003 L-0.851 0.292 A0.095 0.095 0 0 0 -0.771 0.464 L-0.027 0.037 Z M-0.038 -0.025 L-0.676 -0.134 A0.075 0.075 0 0 0 -0.689 0.015 L-0.042 0.018 Z M-0.021 -0.041 L-0.645 -0.537 A0.085 0.085 0 0 0 -0.74 -0.396 L-0.045 -0.004 Z M0.002 -0.046 L-0.261 -0.718 A0.08 0.08 0 0 0 -0.405 -0.648 L-0.037 -0.026 Z",
+            "fill": "oklch(0.97 0.012 70)",
+            "round": 0.02
+          },
+          {
+            "circle": [
+              0,
+              0,
+              0.09
+            ],
+            "fill": "oklch(0.97 0.012 70)"
+          }
+        ]
+      },
+      "glyph_scale": 0.36,
+      "face_colors": [
+        "oklch(0.72 0.13 42)",
+        "oklch(0.64 0.145 40)"
+      ],
+      "band_colors": [
+        "oklch(0.58 0.145 39)",
+        "oklch(0.51 0.135 37)",
+        "oklch(0.44 0.12 35)"
+      ],
+      "glyph_side": "oklch(0.86 0.04 50)"
+    },
+    "plugin-codex": {
+      "hue": 272,
+      "bands": 3,
+      "glyph_rotation": -45,
+      "texture": {
+        "d": "M0 -0.6 V0.6 M-0.6 0 H0.6 M-0.25 -0.25 V0.25 M-0.25 -0.25 H0.25 M0.25 -0.25 V0.25 M-0.25 0.25 H0.25 M0.25 0.25 V0.452 Q0.25 0.47 0.268 0.47 H0.31 Q0.47 0.47 0.47 0.31 V0.25 Z M0.25 -0.25 V-0.452 Q0.25 -0.47 0.268 -0.47 H0.31 Q0.47 -0.47 0.47 -0.31 V-0.25 Z M-0.25 0.25 V0.452 Q-0.25 0.47 -0.268 0.47 H-0.31 Q-0.47 0.47 -0.47 0.31 V0.25 Z M-0.25 -0.25 V-0.452 Q-0.25 -0.47 -0.268 -0.47 H-0.31 Q-0.47 -0.47 -0.47 -0.31 V-0.25 Z",
+        "width": 0.009
+      },
+      "texture_opacity": 0.16,
+      "custom_glyph": {
+        "layers": [
+          {
+            "circle": [
+              0,
+              0,
+              0.62
+            ],
+            "fill": {
+              "colors": [
+                "#FFFFFF",
+                "oklch(0.9 0.045 280)"
+              ],
+              "from": [
+                0,
+                -0.9
+              ],
+              "to": [
+                0,
+                0.9
+              ]
+            }
+          },
+          {
+            "circle": [
+              0.48,
+              0.191,
+              0.36
+            ],
+            "fill": {
+              "colors": [
+                "#FFFFFF",
+                "oklch(0.9 0.045 280)"
+              ],
+              "from": [
+                0,
+                -0.9
+              ],
+              "to": [
+                0,
+                0.9
+              ]
+            }
+          },
+          {
+            "circle": [
+              0.199,
+              0.462,
+              0.36
+            ],
+            "fill": {
+              "colors": [
+                "#FFFFFF",
+                "oklch(0.9 0.045 280)"
+              ],
+              "from": [
+                0,
+                -0.9
+              ],
+              "to": [
+                0,
+                0.9
+              ]
+            }
+          },
+          {
+            "circle": [
+              -0.199,
+              0.462,
+              0.36
+            ],
+            "fill": {
+              "colors": [
+                "#FFFFFF",
+                "oklch(0.9 0.045 280)"
+              ],
+              "from": [
+                0,
+                -0.9
+              ],
+              "to": [
+                0,
+                0.9
+              ]
+            }
+          },
+          {
+            "circle": [
+              -0.48,
+              0.191,
+              0.36
+            ],
+            "fill": {
+              "colors": [
+                "#FFFFFF",
+                "oklch(0.9 0.045 280)"
+              ],
+              "from": [
+                0,
+                -0.9
+              ],
+              "to": [
+                0,
+                0.9
+              ]
+            }
+          },
+          {
+            "circle": [
+              -0.48,
+              -0.191,
+              0.36
+            ],
+            "fill": {
+              "colors": [
+                "#FFFFFF",
+                "oklch(0.9 0.045 280)"
+              ],
+              "from": [
+                0,
+                -0.9
+              ],
+              "to": [
+                0,
+                0.9
+              ]
+            }
+          },
+          {
+            "circle": [
+              -0.199,
+              -0.462,
+              0.36
+            ],
+            "fill": {
+              "colors": [
+                "#FFFFFF",
+                "oklch(0.9 0.045 280)"
+              ],
+              "from": [
+                0,
+                -0.9
+              ],
+              "to": [
+                0,
+                0.9
+              ]
+            }
+          },
+          {
+            "circle": [
+              0.199,
+              -0.462,
+              0.36
+            ],
+            "fill": {
+              "colors": [
+                "#FFFFFF",
+                "oklch(0.9 0.045 280)"
+              ],
+              "from": [
+                0,
+                -0.9
+              ],
+              "to": [
+                0,
+                0.9
+              ]
+            }
+          },
+          {
+            "circle": [
+              0.48,
+              -0.191,
+              0.36
+            ],
+            "fill": {
+              "colors": [
+                "#FFFFFF",
+                "oklch(0.9 0.045 280)"
+              ],
+              "from": [
+                0,
+                -0.9
+              ],
+              "to": [
+                0,
+                0.9
+              ]
+            }
+          },
+          {
+            "d": "M-0.34 -0.22 L-0.12 0 L-0.34 0.22",
+            "stroke": "oklch(0.5 0.25 268)",
+            "width": 0.13,
+            "surface": true
+          },
+          {
+            "d": "M0.04 0.24 H0.34",
+            "stroke": "oklch(0.5 0.25 268)",
+            "width": 0.13,
+            "surface": true
+          }
+        ]
+      },
+      "glyph_scale": 0.34,
+      "face_colors": [
+        "oklch(0.68 0.16 285)",
+        "oklch(0.52 0.24 270)"
+      ],
+      "band_colors": [
+        "oklch(0.46 0.24 270)",
+        "oklch(0.4 0.22 270)",
+        "oklch(0.34 0.19 271)"
+      ],
+      "glyph_side": "oklch(0.8 0.07 275)"
+    },
+    "plugin-cursor": {
+      "hue": 85,
+      "bands": 3,
+      "glyph_rotation": -45,
+      "texture": {
+        "d": "M0 -0.6 V0.6 M-0.6 0 H0.6 M-0.25 -0.25 V0.25 M-0.25 -0.25 H0.25 M0.25 -0.25 V0.25 M-0.25 0.25 H0.25 M0.25 0.25 V0.452 Q0.25 0.47 0.268 0.47 H0.31 Q0.47 0.47 0.47 0.31 V0.25 Z M0.25 -0.25 V-0.452 Q0.25 -0.47 0.268 -0.47 H0.31 Q0.47 -0.47 0.47 -0.31 V-0.25 Z M-0.25 0.25 V0.452 Q-0.25 0.47 -0.268 0.47 H-0.31 Q-0.47 0.47 -0.47 0.31 V0.25 Z M-0.25 -0.25 V-0.452 Q-0.25 -0.47 -0.268 -0.47 H-0.31 Q-0.47 -0.47 -0.47 -0.31 V-0.25 Z",
+        "width": 0.009
+      },
+      "texture_opacity": 0.12,
+      "face": "graphite",
+      "custom_glyph": {
+        "layers": [
+          {
+            "d": "M0 -0.92 L0.8 -0.46 L0.8 0.46 L0 0.92 L-0.8 0.46 L-0.8 -0.46 Z",
+            "fill": "oklch(0.44 0.006 85)",
+            "round": 0.03
+          },
+          {
+            "d": "M0 -0.92 L0 -0.46 L-0.8 -0.46 Z",
+            "fill": "oklch(0.51 0.006 85)",
+            "round": 0.03
+          },
+          {
+            "d": "M-0.8 -0.46 L0 0 L-0.8 0.46 Z",
+            "fill": "oklch(0.51 0.006 85)",
+            "round": 0.03
+          },
+          {
+            "d": "M-0.8 0.46 L0 0 L0 0.92 Z",
+            "fill": "oklch(0.63 0.006 85)",
+            "round": 0.03
+          },
+          {
+            "d": "M0.44 0.161 L0.8 0.46 L0 0.92 Z",
+            "fill": "oklch(0.63 0.006 85)",
+            "round": 0.03
+          },
+          {
+            "d": "M-0.8 -0.46 L0.8 -0.46 L0 0 Z",
+            "fill": "oklch(0.97 0.004 85)",
+            "round": 0.03,
+            "surface": true
+          },
+          {
+            "d": "M0.8 -0.46 L0 0.92 L0 0 Z",
+            "fill": "oklch(0.88 0.004 85)",
+            "round": 0.03,
+            "surface": true
+          }
+        ]
+      },
+      "glyph_scale": 0.38,
+      "face_colors": [
+        "oklch(0.3 0.008 85)",
+        "oklch(0.2 0.008 85)"
+      ],
+      "band_colors": [
+        "oklch(0.27 0.008 85)",
+        "oklch(0.33 0.008 85)",
+        "oklch(0.4 0.008 85)"
+      ],
+      "glyph_side": "oklch(0.3 0.006 85)",
+      "texture_color": "oklch(0.75 0.01 85)"
+    },
+    "plugin-computer-use": {
+      "hue": 250,
+      "bands": 3,
+      "glyph_rotation": -45,
+      "texture": {
+        "d": "M0 -0.6 V0.6 M-0.6 0 H0.6 M-0.25 -0.25 V0.25 M-0.25 -0.25 H0.25 M0.25 -0.25 V0.25 M-0.25 0.25 H0.25 M0.25 0.25 V0.452 Q0.25 0.47 0.268 0.47 H0.31 Q0.47 0.47 0.47 0.31 V0.25 Z M0.25 -0.25 V-0.452 Q0.25 -0.47 0.268 -0.47 H0.31 Q0.47 -0.47 0.47 -0.31 V-0.25 Z M-0.25 0.25 V0.452 Q-0.25 0.47 -0.268 0.47 H-0.31 Q-0.47 0.47 -0.47 0.31 V0.25 Z M-0.25 -0.25 V-0.452 Q-0.25 -0.47 -0.268 -0.47 H-0.31 Q-0.47 -0.47 -0.47 -0.31 V-0.25 Z",
+        "width": 0.009
+      },
+      "texture_opacity": 0.16,
+      "custom_glyph": {
+        "layers": [
+          {
+            "d": "M-0.62 -0.66 L0.80 -0.10 L0.10 0.12 L-0.12 0.82 Z",
+            "fill": "#FFFFFF",
+            "round": 0.3
+          },
+          {
+            "d": "M-0.62 -0.66 L0.80 -0.10 L0.10 0.12 L-0.12 0.82 Z",
+            "fill": {
+              "colors": [
+                "oklch(0.8 0.14 225)",
+                "oklch(0.57 0.21 266)"
+              ],
+              "from": [
+                -0.6,
+                -0.6
+              ],
+              "to": [
+                0.4,
+                0.6
+              ]
+            },
+            "round": 0.14,
+            "surface": true
+          }
+        ]
+      },
+      "face_colors": [
+        "oklch(0.79 0.135 236)",
+        "oklch(0.78 0.13 330)"
+      ],
+      "band_colors": [
+        "oklch(0.72 0.14 265)",
+        "oklch(0.62 0.17 268)",
+        "oklch(0.53 0.19 272)"
+      ],
+      "glyph_side": "oklch(0.62 0.15 262)"
+    },
+    "plugin-swift-format": {
+      "hue": 40,
+      "bands": 3,
+      "glyph_rotation": -45,
+      "texture": {
+        "d": "M0 -0.6 V0.6 M-0.6 0 H0.6 M-0.25 -0.25 V0.25 M-0.25 -0.25 H0.25 M0.25 -0.25 V0.25 M-0.25 0.25 H0.25 M0.25 0.25 V0.452 Q0.25 0.47 0.268 0.47 H0.31 Q0.47 0.47 0.47 0.31 V0.25 Z M0.25 -0.25 V-0.452 Q0.25 -0.47 0.268 -0.47 H0.31 Q0.47 -0.47 0.47 -0.31 V-0.25 Z M-0.25 0.25 V0.452 Q-0.25 0.47 -0.268 0.47 H-0.31 Q-0.47 0.47 -0.47 0.31 V0.25 Z M-0.25 -0.25 V-0.452 Q-0.25 -0.47 -0.268 -0.47 H-0.31 Q-0.47 -0.47 -0.47 -0.31 V-0.25 Z",
+        "width": 0.009
+      },
+      "texture_opacity": 0.16,
+      "custom_glyph": {
+        "layers": [
+          {
+            "d": "M0.18 -0.86 C0.66 -0.52 0.84 -0.02 0.64 0.40 C0.74 0.50 0.80 0.62 0.80 0.80 C0.70 0.66 0.58 0.62 0.46 0.64 C0.06 0.86 -0.48 0.74 -0.86 0.30 C-0.44 0.56 -0.02 0.52 0.22 0.30 C-0.12 0.08 -0.50 -0.28 -0.80 -0.62 C-0.42 -0.36 -0.10 -0.14 0.12 0.00 C-0.10 -0.26 -0.34 -0.56 -0.48 -0.82 C-0.12 -0.50 0.20 -0.24 0.40 -0.06 C0.50 -0.34 0.40 -0.62 0.18 -0.86 Z",
+            "fill": "#FFFFFF",
+            "round": 0.03
+          }
+        ]
+      },
+      "face_colors": [
+        "oklch(0.78 0.16 62)",
+        "oklch(0.66 0.21 36)"
+      ],
+      "band_colors": [
+        "oklch(0.6 0.21 33)",
+        "oklch(0.53 0.2 30)",
+        "oklch(0.46 0.18 28)"
+      ],
+      "glyph_side": "oklch(0.86 0.06 45)"
+    },
+    "homebrew-tap": {
+      "hue": 70,
+      "bands": 3,
+      "glyph_rotation": -45,
+      "texture": {
+        "d": "M0 -0.6 V0.6 M-0.6 0 H0.6 M-0.25 -0.25 V0.25 M-0.25 -0.25 H0.25 M0.25 -0.25 V0.25 M-0.25 0.25 H0.25 M0.25 0.25 V0.452 Q0.25 0.47 0.268 0.47 H0.31 Q0.47 0.47 0.47 0.31 V0.25 Z M0.25 -0.25 V-0.452 Q0.25 -0.47 0.268 -0.47 H0.31 Q0.47 -0.47 0.47 -0.31 V-0.25 Z M-0.25 0.25 V0.452 Q-0.25 0.47 -0.268 0.47 H-0.31 Q-0.47 0.47 -0.47 0.31 V0.25 Z M-0.25 -0.25 V-0.452 Q-0.25 -0.47 -0.268 -0.47 H-0.31 Q-0.47 -0.47 -0.47 -0.31 V-0.25 Z",
+        "width": 0.009
+      },
+      "texture_opacity": 0.16,
+      "custom_glyph": {
+        "layers": [
+          {
+            "d": "M0.36 -0.10 H0.60 A0.18 0.18 0 0 1 0.78 0.08 V0.30 A0.18 0.18 0 0 1 0.60 0.48 H0.36",
+            "stroke": "#FFFFFF",
+            "width": 0.15
+          },
+          {
+            "d": "M-0.64 -0.30 H0.36 V0.62 A0.18 0.18 0 0 1 0.18 0.80 H-0.46 A0.18 0.18 0 0 1 -0.64 0.62 Z",
+            "fill": "#FFFFFF",
+            "round": 0.03
+          },
+          {
+            "circle": [
+              -0.44,
+              -0.4,
+              0.21
+            ],
+            "fill": "#FFFFFF"
+          },
+          {
+            "circle": [
+              -0.12,
+              -0.5,
+              0.25
+            ],
+            "fill": "#FFFFFF"
+          },
+          {
+            "circle": [
+              0.18,
+              -0.4,
+              0.2
+            ],
+            "fill": "#FFFFFF"
+          },
+          {
+            "d": "M-0.52 -0.14 H0.24 V0.58 A0.10 0.10 0 0 1 0.14 0.68 H-0.42 A0.10 0.10 0 0 1 -0.52 0.58 Z",
+            "fill": {
+              "colors": [
+                "oklch(0.84 0.15 82)",
+                "oklch(0.72 0.16 62)"
+              ],
+              "from": [
+                0,
+                -0.14
+              ],
+              "to": [
+                0,
+                0.68
+              ]
+            },
+            "surface": true
+          },
+          {
+            "circle": [
+              -0.26,
+              0.34,
+              0.05
+            ],
+            "fill": "#FFFFFF",
+            "surface": true
+          },
+          {
+            "circle": [
+              0.02,
+              0.12,
+              0.04
+            ],
+            "fill": "#FFFFFF",
+            "surface": true
+          },
+          {
+            "circle": [
+              -0.08,
+              0.48,
+              0.035
+            ],
+            "fill": "#FFFFFF",
+            "surface": true
+          }
+        ]
+      },
+      "glyph_scale": 0.34,
+      "face_colors": [
+        "oklch(0.86 0.15 88)",
+        "oklch(0.76 0.16 72)"
+      ],
+      "band_colors": [
+        "oklch(0.68 0.15 64)",
+        "oklch(0.59 0.13 57)",
+        "oklch(0.5 0.11 52)"
+      ],
+      "glyph_side": "oklch(0.88 0.05 75)"
+    },
+    "plugin-trae": {
+      "hue": 155,
+      "bands": 3,
+      "glyph_rotation": -45,
+      "texture": {
+        "d": "M0 -0.6 V0.6 M-0.6 0 H0.6 M-0.25 -0.25 V0.25 M-0.25 -0.25 H0.25 M0.25 -0.25 V0.25 M-0.25 0.25 H0.25 M0.25 0.25 V0.452 Q0.25 0.47 0.268 0.47 H0.31 Q0.47 0.47 0.47 0.31 V0.25 Z M0.25 -0.25 V-0.452 Q0.25 -0.47 0.268 -0.47 H0.31 Q0.47 -0.47 0.47 -0.31 V-0.25 Z M-0.25 0.25 V0.452 Q-0.25 0.47 -0.268 0.47 H-0.31 Q-0.47 0.47 -0.47 0.31 V0.25 Z M-0.25 -0.25 V-0.452 Q-0.25 -0.47 -0.268 -0.47 H-0.31 Q-0.47 -0.47 -0.47 -0.31 V-0.25 Z",
+        "width": 0.009
+      },
+      "texture_opacity": 0.12,
+      "face": "graphite",
+      "custom_glyph": {
+        "layers": [
+          {
+            "d": "M-0.875 -0.625 h0.25 v0.25 h-0.25 Z M-0.625 -0.625 h0.25 v0.25 h-0.25 Z M-0.375 -0.625 h0.25 v0.25 h-0.25 Z M-0.125 -0.625 h0.25 v0.25 h-0.25 Z M0.125 -0.625 h0.25 v0.25 h-0.25 Z M0.375 -0.625 h0.25 v0.25 h-0.25 Z M0.625 -0.625 h0.25 v0.25 h-0.25 Z M0.625 -0.375 h0.25 v0.25 h-0.25 Z M0.625 -0.125 h0.25 v0.25 h-0.25 Z M0.625 0.125 h0.25 v0.25 h-0.25 Z M0.625 0.375 h0.25 v0.25 h-0.25 Z M-0.875 -0.375 h0.25 v0.25 h-0.25 Z M-0.875 -0.125 h0.25 v0.25 h-0.25 Z M-0.875 0.125 h0.25 v0.25 h-0.25 Z M-0.625 0.375 h0.25 v0.25 h-0.25 Z M-0.375 0.375 h0.25 v0.25 h-0.25 Z M-0.125 0.375 h0.25 v0.25 h-0.25 Z M0.125 0.375 h0.25 v0.25 h-0.25 Z M0.375 0.375 h0.25 v0.25 h-0.25 Z",
+            "fill": "oklch(0.85 0.2 155)"
+          },
+          {
+            "d": "M-0.162 -0.17 L0.008 0.0 L-0.162 0.17 L-0.333 0.0 Z M0.35 -0.17 L0.52 0.0 L0.35 0.17 L0.18 0.0 Z",
+            "fill": "oklch(0.85 0.2 155)"
+          }
+        ]
+      },
+      "face_colors": [
+        "oklch(0.3 0.006 260)",
+        "oklch(0.21 0.006 260)"
+      ],
+      "band_colors": [
+        "oklch(0.27 0.03 158)",
+        "oklch(0.33 0.05 158)",
+        "oklch(0.4 0.07 158)"
+      ],
+      "glyph_side": "oklch(0.55 0.14 158)",
+      "texture_color": "oklch(0.8 0.08 158)"
     }
   }
 }
@@ -570,7 +1215,7 @@ chin share the ivory lightness, separated by depth rather than tone.
 - Do draw the computer from the App icon's layers; never redraw or restyle it per surface.
 - Do render every image text with the bundled OFL fonts, in both light and dark.
 - Don't use gradients on cards or the computer, or rotate them.
-- Don't draw clouds, globes or padlocks; the link carries the meaning.
+- Don't draw clouds, globes or padlocks for the connection; the link carries it.
 - Don't put text inside the App icon.
 
 ## Responsive
@@ -584,7 +1229,8 @@ keyboard operation and reduced-motion support.
 ## Iteration Guide
 
 Change tokens here first, then regenerate every asset with the organization renderer and deliver
-them through each repository's brand lock. A new component swaps only its glyph — on the front plane
-of its icon and on the computer's screen — and never introduces a new color. Check the App icon in
+them through each repository's brand lock. A new component gets its own Iconography entry — a slab in the
+colors of the product it serves, with a glyph that follows that product's mark — and the same glyph
+on the computer's screen. Check the App icon in
 every macOS rendition, including Clear and Tinted, before delivery. The repository README lists the
 render, check and delivery commands.

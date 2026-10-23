@@ -1,5 +1,5 @@
 // Render every Computer MCP brand asset from DESIGN.md and config.json into Exports/.
-// Usage: APP_ICONS_SCRIPT=/path/to/app_icons.py node Brand/render.mjs
+// Usage: APP_ICONS_SCRIPT=/path/to/app_icons.py FRAMEWORK_ICONS_SCRIPT=/path/to/design_icons.py node Brand/render.mjs
 
 import { execFileSync } from 'node:child_process';
 import crypto from 'node:crypto';
@@ -7,23 +7,26 @@ import fs from 'node:fs';
 import path from 'node:path';
 import YAML from 'yaml';
 import { chromium } from 'playwright';
-import { componentIcon, glyph } from './icons.mjs';
 
 const BRAND = path.dirname(new URL(import.meta.url).pathname);
 const ROOT = path.dirname(BRAND);
 const EXPORTS = path.join(BRAND, 'Exports');
 const CACHE = path.join(BRAND, '.cache');
 const INPUTS = [
-  'DESIGN.md', 'Brand/config.json', 'Brand/icons.mjs', 'Brand/render.mjs', 'Brand/package.json', 'Brand/package-lock.json',
+  'DESIGN.md', 'Brand/config.json', 'Brand/render.mjs', 'Brand/package.json', 'Brand/package-lock.json',
   ...fs.readdirSync(path.join(BRAND, 'app-icon', 'layers')).filter((name) => name.endsWith('.svg')).sort()
     .map((name) => `Brand/app-icon/layers/${name}`),
 ];
 const APP_ICONS_SCRIPT = process.env.APP_ICONS_SCRIPT;
 if (!APP_ICONS_SCRIPT?.trim()) throw new Error('Set APP_ICONS_SCRIPT to the apple-app-icon-design generator script (app_icons.py). Icon Composer from Xcode is required; IC_TOOL can select its ictool.');
+const FRAMEWORK_ICONS_SCRIPT = process.env.FRAMEWORK_ICONS_SCRIPT;
+if (!FRAMEWORK_ICONS_SCRIPT?.trim()) throw new Error('Set FRAMEWORK_ICONS_SCRIPT to the apple-framework-icon-design generator script (design_icons.py).');
 
 const sha256 = (data) => crypto.createHash('sha256').update(data).digest('hex');
 const config = JSON.parse(fs.readFileSync(path.join(BRAND, 'config.json'), 'utf8'));
-const design = YAML.parse(fs.readFileSync(path.join(ROOT, 'DESIGN.md'), 'utf8').match(/^---\n([\s\S]*?)\n---\n/)[1]);
+const designText = fs.readFileSync(path.join(ROOT, 'DESIGN.md'), 'utf8');
+const design = YAML.parse(designText.match(/^---\n([\s\S]*?)\n---\n/)[1]);
+const iconography = JSON.parse(designText.split('\n## Iconography\n')[1].match(/```json\n([\s\S]*?)\n```/)[1]);
 const c = design.colors, t = design.typography, r = design.rounded;
 
 async function fonts() {
@@ -116,13 +119,31 @@ function link(p, points, width = 30) {
 
 const check = (color) => `<svg width="12" height="12" viewBox="0 0 12 12" style="vertical-align:-1px"><path d="M2 6.5 L5 9.5 L10.5 2.5" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
-const glyphSvg = (name, color, size) => `<svg width="${size}" height="${size}" viewBox="0 0 1024 1024">${glyph(name, { cx: 512, cy: 512, size: 1024, color, stroke: 9 })}</svg>`;
+// A member's mark on the computer's screen: its icon's glyph flat in ink, with inlaid parts in the
+// screen's amber. Framework glyphs inlay their surface parts; an app icon names its layers in config.
+function mark(member, p, size) {
+  const ink = c['on-signal'];
+  const entry = iconography.icons[member.repository];
+  if (entry) {
+    const parts = entry.custom_glyph.layers.map((layer) => {
+      const paint = layer.surface ? p.signal : ink;
+      const look = layer.stroke
+        ? `fill="none" stroke="${paint}" stroke-width="${layer.width ?? 0.16}" stroke-linecap="round" stroke-linejoin="round"`
+        : `fill="${paint}"${layer.round ? ` stroke="${paint}" stroke-width="${layer.round}" stroke-linejoin="round"` : ''}`;
+      return layer.circle ? `<circle cx="${layer.circle[0]}" cy="${layer.circle[1]}" r="${layer.circle[2]}" ${look}/>` : `<path d="${layer.d}" ${look}/>`;
+    });
+    return `<svg width="${size}" height="${size}" viewBox="-1 -1 2 2">${parts.join('')}</svg>`;
+  }
+  const { ink: inked, inlay, box } = member.screen;
+  const art = (names, paint) => names.map((name) => `<g fill="${paint}">${LAYER(name)}</g>`).join('');
+  return `<svg width="${size}" height="${size}" viewBox="${box.join(' ')}">${art(inked, ink)}${art(inlay, p.signal)}</svg>`;
+}
 
 function header(faces, member, mode, locale = 'en') {
   const p = palette(mode);
   const isApp = member.repository === 'computer-mcp';
-  const icon = isApp ? appIconPng : dataUri(componentIcon(c, member.glyph));
-  const screen = isApp ? '' : glyphSvg(member.glyph, c['on-signal'], 84);
+  const icon = icons[member.repository];
+  const screen = isApp ? '' : mark(member, p, 84);
   const ask = esc(config.copy.request[locale] ?? config.copy.request.en);
   return page(faces, 1280, 320, `
     body{background:${p.bg};color:${p.fg}}
@@ -142,7 +163,7 @@ function header(faces, member, mode, locale = 'en') {
 function appSocial(faces, member, locale) {
   const p = palette('light');
   const zh = locale === 'zh-CN';
-  const icon = appIconPng;
+  const icon = icons[member.repository];
   const card = { x: 744, y: 64, w: 372 };
   const lx = 1000, top = 268;
   const result = `<div style="${typo('code-md', { fontSize: '17px', lineHeight: 1.55 })};color:${c['on-signal']}">
@@ -172,7 +193,7 @@ function appSocial(faces, member, locale) {
 
 function memberSocial(faces, member) {
   const p = palette('light');
-  const icon = dataUri(componentIcon(c, member.glyph));
+  const icon = icons[member.repository];
   const B = { x: 760, y: 96, w: 210, h: 150 }, cx = 1060, top = 290;
   return page(faces, 1280, 640, `
     body{background:${p.bg};color:${p.fg}}
@@ -188,7 +209,7 @@ function memberSocial(faces, member) {
     <svg style="position:absolute;left:0;top:0;z-index:2;overflow:visible" width="1280" height="640"><defs><filter id="lift" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="18" stdDeviation="16" flood-color="#0a101e" flood-opacity=".22"/></filter></defs>
       <path filter="url(#lift)" d="M${B.x + 28} ${B.y} H${B.x + B.w - 28} Q${B.x + B.w} ${B.y} ${B.x + B.w} ${B.y + 28} V${B.y + B.h - 28} Q${B.x + B.w} ${B.y + B.h} ${B.x + B.w - 28} ${B.y + B.h} H${B.x + 96} L${B.x + 30} ${B.y + B.h + 46} L${B.x + 44} ${B.y + B.h} H${B.x + 28} Q${B.x} ${B.y + B.h} ${B.x} ${B.y + B.h - 28} V${B.y + 28} Q${B.x} ${B.y} ${B.x + 28} ${B.y} Z" fill="${p.raised}" stroke="${p.line}"/></svg>
     <div class="bubble" style="left:${B.x}px;top:${B.y}px;width:${B.w}px;height:${B.h}px;background:none;border:0;box-shadow:none"><i></i><i></i><i></i></div>
-    ${computer(p, { cx, top, h: 286 }, glyphSvg(member.glyph, c['on-signal'], 120))}
+    ${computer(p, { cx, top, h: 286 }, mark(member, p, 120))}
     <div class="top"><img src="${icon}"><div><div class="eyebrow">${esc(member.eyebrow)}</div><b>${esc(member.title)}</b></div></div>
     <h1>${esc(member.line.en)}</h1>
     <div class="url">github.com/computer-mcp/${member.repository}</div>`);
@@ -211,30 +232,51 @@ function copyDirectory(source, target) {
   }
 }
 
-function generateAppIcon() {
-  fs.mkdirSync(CACHE, { recursive: true });
-  const temporary = fs.mkdtempSync(path.join(CACHE, 'app-icon-'));
-  const output = path.join(temporary, 'output');
-  try {
-    execFileSync('python3', [APP_ICONS_SCRIPT, path.join(ROOT, 'DESIGN.md'), '--name', 'computer-mcp', '--style', 'liquid-glass', '--out', output], { stdio: 'inherit' });
+// App icons from the app_icons entries. The App's document, rendition and web icons serve the App and
+// the website; another app icon becomes that member's icon.
+function generateAppIcons(work) {
+  let renderer;
+  for (const name of Object.keys(iconography.app_icons)) {
+    const output = path.join(work, name);
+    execFileSync('python3', [APP_ICONS_SCRIPT, path.join(ROOT, 'DESIGN.md'), '--name', name, '--style', 'liquid-glass', '--out', output], { stdio: 'inherit' });
     const manifest = JSON.parse(fs.readFileSync(path.join(output, 'manifest.json'), 'utf8'));
+    renderer = typeof manifest.renderer === 'string' ? JSON.parse(manifest.renderer) : manifest.renderer;
     const png = fs.readFileSync(path.join(output, 'renditions', 'macOS-Default.png'));
-    fs.rmSync(EXPORTS, { recursive: true, force: true });
-    copyDirectory(path.join(output, 'computer-mcp.icon'), 'app/AppIcon.icon');
-    write('app/app-icon.png', png);
-    for (const name of ['favicon.svg', 'favicon-32.png', 'apple-touch-icon.png']) {
-      write(`web/${name}`, fs.readFileSync(path.join(output, 'web', name)));
+    icons[name] = dataUri(png, 'image/png');
+    if (name === 'computer-mcp') {
+      copyDirectory(path.join(output, `${name}.icon`), 'app/AppIcon.icon');
+      write('app/app-icon.png', png);
+      for (const file of ['favicon.svg', 'favicon-32.png', 'apple-touch-icon.png']) {
+        write(`web/${file}`, fs.readFileSync(path.join(output, 'web', file)));
+      }
+      write('web/avatar.png', fs.readFileSync(path.join(output, 'web', 'avatar-1024.png')));
+    } else {
+      write(`icons/${name}.svg`, fs.readFileSync(path.join(output, 'web', 'favicon.svg')));
+      write(`icons/${name}.png`, fs.readFileSync(path.join(output, 'web', 'icon-512.png')));
     }
-    write('web/avatar.png', fs.readFileSync(path.join(output, 'web', 'avatar-1024.png')));
-    const renderer = typeof manifest.renderer === 'string' ? JSON.parse(manifest.renderer) : manifest.renderer;
-    return { png: dataUri(png, 'image/png'), renderer, generator: sha256(fs.readFileSync(APP_ICONS_SCRIPT)) };
-  } finally {
-    fs.rmSync(temporary, { recursive: true, force: true });
   }
+  return renderer;
 }
 
-const app = generateAppIcon();
-const appIconPng = app.png;
+// Component icons from the icons entries; their PNGs are rasterized with the other exports.
+function generateFrameworkIcons(work) {
+  const output = path.join(work, 'framework');
+  execFileSync('python3', [FRAMEWORK_ICONS_SCRIPT, path.join(ROOT, 'DESIGN.md'), '--out', output], { stdio: 'inherit' });
+  return Object.fromEntries(Object.keys(iconography.icons).map((name) => [name, fs.readFileSync(path.join(output, `${name}.svg`), 'utf8')]));
+}
+
+const icons = {};
+fs.mkdirSync(CACHE, { recursive: true });
+const work = fs.mkdtempSync(path.join(CACHE, 'icons-'));
+let appRenderer, frameworkSvgs;
+try {
+  fs.rmSync(EXPORTS, { recursive: true, force: true });
+  appRenderer = generateAppIcons(work);
+  frameworkSvgs = generateFrameworkIcons(work);
+} finally {
+  fs.rmSync(work, { recursive: true, force: true });
+}
+for (const [name, svg] of Object.entries(frameworkSvgs)) icons[name] = dataUri(svg);
 const faces = await fonts();
 const browser = await chromium.launch();
 const context = await browser.newContext();
@@ -262,8 +304,8 @@ const S = config.sizes;
 
 for (const member of config.members) {
   const repo = member.repository;
-  if (repo !== 'computer-mcp') {
-    const svg = componentIcon(c, member.glyph);
+  const svg = frameworkSvgs[repo];
+  if (svg) {
     write(`icons/${repo}.svg`, svg);
     await shot(`icons/${repo}.png`, raster(faces, svg, S.icon), S.icon, true);
   }
@@ -278,7 +320,12 @@ const pkg = JSON.parse(fs.readFileSync(path.join(BRAND, 'node_modules/playwright
 const manifest = {
   schema_version: 1,
   inputs: Object.fromEntries(INPUTS.map((name) => [name, sha256(fs.readFileSync(path.join(ROOT, name)))])),
-  renderer: { playwright: pkg.version, chromium: browser.version(), node: process.version, platform: process.platform, architecture: process.arch, ictool: app.renderer, app_icons_sha256: app.generator },
+  renderer: {
+    playwright: pkg.version, chromium: browser.version(), node: process.version, platform: process.platform, architecture: process.arch,
+    ictool: appRenderer, app_icons_sha256: sha256(fs.readFileSync(APP_ICONS_SCRIPT)),
+    framework_icons_sha256: sha256(fs.readFileSync(FRAMEWORK_ICONS_SCRIPT)),
+    framework_generator_sha256: sha256(fs.readFileSync(path.join(path.dirname(FRAMEWORK_ICONS_SCRIPT), 'stack_logo.py'))),
+  },
   exports: Object.fromEntries([...written].sort().map((name) => [name, sha256(fs.readFileSync(path.join(EXPORTS, name)))])),
 };
 await browser.close();

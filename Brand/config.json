@@ -47,56 +47,49 @@
     },
     {
       "repository": "plugin-codex",
-      "glyph": "braces",
       "title": "Codex",
       "eyebrow": "Computer MCP plugin",
       "line": { "en": "Codex execution and protocol inspection" }
     },
     {
       "repository": "plugin-computer-use",
-      "glyph": "pointer",
       "title": "Computer Use",
       "eyebrow": "Computer MCP plugin",
       "line": { "en": "Native desktop observation and actions" }
     },
     {
       "repository": "plugin-claude",
-      "glyph": "speech",
       "title": "Claude Code",
       "eyebrow": "Computer MCP plugin",
       "line": { "en": "Claude Code CLI and streaming MCP adapter" }
     },
     {
       "repository": "plugin-cursor",
-      "glyph": "caret",
       "title": "Cursor",
       "eyebrow": "Computer MCP plugin",
       "line": { "en": "Cursor Agent CLI and ACP integration" }
     },
     {
       "repository": "plugin-swift-format",
-      "glyph": "bars",
       "title": "Swift Format",
       "eyebrow": "Computer MCP plugin",
       "line": { "en": "Verified Swift formatting and linting" }
     },
     {
       "repository": "plugin-trae",
-      "glyph": "play",
       "title": "TRAE",
       "eyebrow": "Computer MCP plugin",
       "line": { "en": "TRAE sessions through ACP" }
     },
     {
       "repository": "apple-cli",
-      "glyph": "prompt",
+      "screen": { "ink": ["apple-cli-notes", "apple-cli-calendar", "apple-cli-mail", "apple-cli-terminal"], "inlay": ["apple-cli-prompt"], "box": [205, 205, 614, 614] },
       "title": "Apple CLI",
       "eyebrow": "Computer MCP tool",
       "line": { "en": "A local macOS CLI and MCP server for Apple apps" }
     },
     {
       "repository": "homebrew-tap",
-      "glyph": "tray",
       "title": "Homebrew Tap",
       "eyebrow": "Computer MCP distribution",
       "line": { "en": "Install Computer MCP and Apple CLI with Homebrew" }

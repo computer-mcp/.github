@@ -33,13 +33,16 @@ Text rendered into images (`Brand/config.json` `copy` and `members`) must match 
 
 ## Updating the brand
 
-Install Icon Composer from Xcode and set `APP_ICONS_SCRIPT` to the
-`apple-app-icon-design` generator script (`skills/apple-app-icon-design/scripts/app_icons.py` in the
-[showxu/skills](https://github.com/showxu/skills) repository). The manifest
-records the script's SHA-256 next to the renderer versions. The generator finds
-Icon Composer's `ictool` in the selected Xcode installation; set `IC_TOOL` to
-select another export-capable renderer. Python 3 and `rsvg-convert` are also
-required by the generator.
+The icons come from two generators in the
+[showxu/skills](https://github.com/showxu/skills) repository. Install Icon
+Composer from Xcode and set `APP_ICONS_SCRIPT` to the `apple-app-icon-design`
+generator (`skills/apple-app-icon-design/scripts/app_icons.py`), which renders
+the App icons; it finds Icon Composer's `ictool` in the selected Xcode
+installation, and `IC_TOOL` selects another export-capable renderer. Set
+`FRAMEWORK_ICONS_SCRIPT` to the `apple-framework-icon-design` generator
+(`skills/apple-framework-icon-design/scripts/design_icons.py`), which renders
+the component icons. The manifest records the generators' SHA-256 digests next
+to the renderer versions. Python 3 and `rsvg-convert` are also required.
 
 1. Edit `DESIGN.md` or `Brand/config.json`.
 2. Render: `npm ci --prefix Brand`, `npx --prefix Brand playwright install --only-shell chromium`,
@@ -49,8 +52,12 @@ required by the generator.
    --output-file Brand/.cache/app-icon-preview.png --width 1024 --height 1024
    --scale 1 --design-generation <generation>`
    for Default, Dark, ClearLight, ClearDark, TintedLight and TintedDark, using
-   the `design_generation` from the Iconography entry.
-4. Check: `npm --prefix Brand run lint` and `python3 Brand/brand.py check`.
+   the `design_generation` from the Iconography entry. Review the other App
+   icons with the generator's contact sheet:
+   `python3 "$APP_ICONS_SCRIPT" DESIGN.md --name <name> --style liquid-glass --out Brand/.cache/<name>`.
+4. Check: `npm --prefix Brand run lint`, `python3 "$APP_ICONS_SCRIPT" DESIGN.md --name <name> --lint`
+   for each App icon, `python3 "$FRAMEWORK_ICONS_SCRIPT" DESIGN.md --lint` and
+   `python3 Brand/brand.py check`.
 5. Commit `DESIGN.md`, `Brand/` and the exports together.
 
 ## Delivering to a repository
