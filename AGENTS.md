@@ -68,15 +68,20 @@ Use this check:
 
 ## Task Route
 
-- For the public organization entry point, edit `profile/README.md`.
+- For the public organization entry point, edit `profile/catalog.json` and
+  regenerate `profile/README.md`; `README.md` gives the commands.
 - For conventions shared by every repository, read `MAINTENANCE.md`.
 - Before changing shared version, plugin compatibility or dependency rules,
   read `VERSIONING.md`.
 - For repository settings, GitHub Apps and Actions credentials, change
-  `MAINTENANCE.md` with the setting, then run `python3 Scripts/check-settings.py`.
-- For visual identity, read `DESIGN.md`; the renderer, its configuration and
-  the rendered exports live in `Brand/`, and `README.md` describes rendering
-  and delivery.
+  `MAINTENANCE.md` with the setting; the organization check in
+  [computer-mcp/github-workflows](https://github.com/computer-mcp/github-workflows)
+  compares it with live settings.
+- For visual identity, read `DESIGN.md`. Icon sources and their provenance
+  live in `.github/design/icons/`, fonts in `.github/design/fonts/`, and
+  `README.md` gives the generator and toolchain commands.
+- For a reusable workflow or a check more than one repository needs, work in
+  `computer-mcp/github-workflows`; this repository keeps only thin callers.
 - For positioning, the tagline and other text rendered into images, read the
   main repository's
   [ProductIdentity](https://github.com/computer-mcp/computer-mcp/blob/master/Documentation/Architecture/ProductIdentity.md).
@@ -89,12 +94,15 @@ Use this check:
 
 - `AGENTS.md` is the agent guide: first-principles guardrails, task
   route, authority boundaries, and boundary guardrails.
-- `README.md` indexes scope, brand rendering and delivery.
+- `README.md` indexes scope, icon generation, profile and social-preview
+  rendering, and delivery.
 - `MAINTENANCE.md` is current truth for cross-repository operating conventions.
   `VERSIONING.md` owns shared version and dependency rules; each repository
   owns its version sources, release procedure and written exceptions.
-- `DESIGN.md` and `Brand/config.json` are current truth for visual identity.
-  `Brand/Exports/` and `profile/brand/` are rendered from them.
+- `DESIGN.md` is current truth for visual identity and `profile/catalog.json`
+  for the profile's repositories, groups and sentences. `profile/README.md`
+  and the social previews are rendered from them; consumed icon copies are
+  recorded in each icon's `provenance.json`.
 - The main repository's ProductIdentity is current truth for product meaning.
 - Root governance files and `.github/*` are GitHub-facing governance and the
   organization's default community files.
@@ -149,11 +157,12 @@ source of truth instead of a literal value.
 
 - Text rendered into images must match ProductIdentity. Preserve repository
   visibility and integration ownership.
-- Change `DESIGN.md` or `Brand/config.json`, re-render, and commit the exports
-  with their manifest. Never edit exports by hand.
-- Before committing, run `npm --prefix Brand run lint` and
-  `python3 Brand/brand.py check`.
-- Deliver artwork to other repositories only with `python3 Brand/brand.py sync`,
-  through a pull request in each repository.
+- Change `DESIGN.md` or `profile/catalog.json`, regenerate, and commit inputs
+  and outputs together. Never edit generated files by hand.
+- Before committing, lint DESIGN and check the profile with the
+  `github-readme-design` toolchain.
+- Deliver icons and social previews to other repositories through a pull
+  request in each repository, and record each consumed copy in the icon's
+  `provenance.json`.
 - Keep `.agent/` local and untracked. Profile content must be understandable
   from committed artifacts alone.

@@ -7,28 +7,32 @@ on:
 permissions:
   contents: read
 jobs:
-  design:
+  presentation:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - run: npm ci --prefix Brand --no-fund --no-audit
       - name: Lint DESIGN.md
-        run: npm --prefix Brand run lint
-      - name: Check brand exports
-        run: python3 Brand/brand.py check
-  plugin-runtime:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        uses: showxu/skills/skills/github-readme-design/scripts@36707036061a2d0ba012184ef0b6d6820082127f
         with:
-          persist-credentials: false
-      - name: Test shared plugin runtime, delivery and release
-        run: python3 -m unittest discover -s Tests
-      - name: Check embedded runtime digest
-        run: python3 Scripts/plugin-runtime.py check-workflow
-  profile:
-    uses: ./.github/workflows/brand-check.yml
+          asset: design
+          command: lint
+          design: DESIGN.md
+      - name: Check the organization profile
+        uses: showxu/skills/skills/github-readme-design/scripts@36707036061a2d0ba012184ef0b6d6820082127f
+        with:
+          asset: profile
+          design: DESIGN.md
+          catalog: profile/catalog.json
+      - name: Check this repository's social preview
+        uses: showxu/skills/skills/github-readme-design/scripts@36707036061a2d0ba012184ef0b6d6820082127f
+        with:
+          asset: social-preview
+          design: DESIGN.md
+          fonts: .github/design/fonts
+          catalog: profile/catalog.json
+          repository: .github
+          icon: profile/assets/mark-light.png
+          assets: .github/assets/social-preview

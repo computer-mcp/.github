@@ -1,0 +1,28 @@
+{
+  "icon": "plugin-codex",
+  "skill": "apple-framework-icon-design",
+  "skill_commit": "36707036061a2d0ba012184ef0b6d6820082127f",
+  "command": "python3 skills/apple-framework-icon-design/scripts/design_icons.py DESIGN.md --out <dir> --png",
+  "renderer": "design_icons.py with rsvg-convert",
+  "verified_at": "2026-10-23",
+  "copies": [
+    {
+      "repository": "computer-mcp/plugin-codex",
+      "path": ".github/assets/logo/logo-light.png",
+      "output": "plugin-codex.png",
+      "sha256": "77b6b77fb6f22573201d621694cbb78c023f61a7be36ad31a154fce87939ea7e"
+    },
+    {
+      "repository": "computer-mcp/plugin-codex",
+      "path": ".github/assets/logo/logo-dark.png",
+      "output": "plugin-codex.png",
+      "sha256": "77b6b77fb6f22573201d621694cbb78c023f61a7be36ad31a154fce87939ea7e"
+    },
+    {
+      "repository": "computer-mcp/computer-mcp.github.io",
+      "path": "public/brand/icons/plugin-codex.svg",
+      "output": "plugin-codex.svg",
+      "sha256": "3dad79ae64db570ebc68a27edb54da16e4810c9c8239eb1ec334f46671f80d91"
+    }
+  ]
+}

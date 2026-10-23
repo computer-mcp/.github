@@ -67,7 +67,7 @@ typography:
     lineHeight: 1.2
     letterSpacing: 0.004em
   headline-zh:
-    fontFamily: Noto Sans SC
+    fontFamily: PingFang SC
     fontSize: 64px
     fontWeight: 600
     lineHeight: 1.14
@@ -107,6 +107,24 @@ typography:
     fontSize: 13px
     fontWeight: 400
     lineHeight: 1.6
+  social-preview-title:
+    fontFamily: Inter
+    fontSize: 72px
+    fontWeight: 600
+    lineHeight: 80px
+    fontVariation: "'opsz' 32"
+  social-preview-owner:
+    fontFamily: Inter
+    fontSize: 26px
+    fontWeight: 600
+    lineHeight: 34px
+    fontVariation: "'opsz' 28"
+  social-preview-body:
+    fontFamily: Inter
+    fontSize: 30px
+    fontWeight: 400
+    lineHeight: 42px
+    fontVariation: "'opsz' 32"
 rounded:
   none: 0px
   sm: 6px
@@ -289,6 +307,29 @@ components:
   focus-ring-dark:
     backgroundColor: "{colors.focus-dark}"
     width: 2px
+  social-preview:
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.on-surface}"
+    typography: "{typography.social-preview-title}"
+    size: 288px
+    padding: 80px
+  social-preview-owner:
+    textColor: "{colors.accent-text}"
+    typography: "{typography.social-preview-owner}"
+  social-preview-about:
+    textColor: "{colors.on-surface-muted}"
+    typography: "{typography.social-preview-body}"
+  social-preview-gap:
+    width: 64px
+    height: 16px
+  profile-header:
+    size: 128px
+  profile-member-header:
+    size: 64px
+  profile-row:
+    size: 40px
+  profile-member-row:
+    size: 28px
 ---
 
 # Computer MCP
@@ -313,7 +354,7 @@ developers and people who want ChatGPT to code and operate their computer for th
 concrete, unhurried. Density: generous on marketing surfaces, compact in reference material.
 
 This file owns visual tokens and rules for every public surface: the App icon, component icons,
-README headers, social cards, the organization profile and the website. Product meaning, the
+README logos, social previews, the organization profile and the website. Product meaning, the
 tagline and voice belong to the App's Product Identity document. The App's own interface follows
 the system appearance and Apple's Human Interface Guidelines; the brand appears only in its icon and
 About window.
@@ -351,10 +392,11 @@ system font stack on the web. Headlines are semibold with slightly tight trackin
 and navigation are set in the same sans in sentence case. Monospace is reserved for real code: tool
 names, paths, commands and output.
 
-Apple's font license does not cover brand artwork, so text rendered into images — headers, social
-cards and icons — uses bundled open fonts that match the system faces: **Inter** (OFL) for Latin,
-**Noto Sans SC** (OFL) for Chinese and **JetBrains Mono** (OFL) for code. The tokens above carry
-these artwork faces; web text maps them to the system stack.
+Apple's font license does not cover brand artwork, so text rendered into images — social previews
+and terminal demos — uses the open fonts bundled in `.github/design/fonts/` with their licenses:
+**Inter** (OFL) for Latin and **JetBrains Mono** (OFL) for code. The Latin and code tokens above
+carry these artwork faces and web text maps them to the system stack; `headline-zh` is the web's
+Chinese headline in PingFang SC.
 
 ## Layout
 
@@ -364,19 +406,23 @@ spacing follows a 4px unit. Reference pages use a single 720px reading column.
 - **Hero:** copy on the left; on the right, the chat card sits high and the computer sits low, with
   the link leaving the request, bending once and entering the top of the computer. Packets sit on
   the vertical run of the link.
-- **README header (1280 × 320, light and dark):** icon and name on the left, one supporting line;
-  on the right the request bubble, the link turning down into the top of the computer, and the
-  member's glyph on its amber screen (the App's screen is plain amber).
-- **Social card (1280 × 640):** icon and name at the top left with the headline below. The App card
-  adds capability chips at the bottom and, on the right, the chat card, the link with its packets
-  and the computer whose screen shows the command and its passing result. A member card carries its family eyebrow and its repository address, and links a typing bubble into the
-  computer showing its glyph.
+- **README first screen:** centered, in order: the repository's logo from `.github/assets/logo/`
+  in light and dark, its name, its accepted sentence, its badges and a navigation row, as
+  `github-readme-design` lays it out.
+- **Social preview (1280 × 640):** the icon on the left at the social-preview size, then the
+  owner, the title and the repository's complete About sentence, rendered by the
+  `github-readme-design` toolchain from the social-preview components and `profile/catalog.json`.
+- **Organization profile:** generated from `profile/catalog.json` with the profile components:
+  the umbrella mark, the promise and a secondary line, navigation, and the repositories by the
+  reader's job.
 - **Website:** compact sticky navigation with the App icon, product name, core links, language
-  switch and download action; the hero; capability examples for files and commands, CLI, MCP,
-  Skills, Computer Use and coding-agent hand-off; how hosts connect and how permissions work on each
-  computer; a dated, sourced comparison with related products; three setup steps with a first safe
-  tool call; FAQ, closing line and organization footer. The homepage is Chinese by default with a
-  complete English version.
+  switch and download action; the hero; three highlights that lead to the sections on worktrees,
+  the sandbox and permissions; a project with its worktrees; the sandbox boundary on an ink band,
+  showing what programs can write, read and not reach, network access through the egress proxy,
+  and Full access beside it; Privacy & Security with a permission request; the plugins with their
+  icons; one chat connected to two computers; a dated, sourced comparison with related products;
+  three setup steps with a first tool call; FAQ, closing line and organization footer. The
+  homepage is Chinese by default with a complete English version.
 
 ## Elevation & Depth
 
@@ -395,30 +441,29 @@ layers with continuous corners; component icons take the framework generator's s
 
 ## Icon Family
 
-- **Component icons:** plugins and the Homebrew tap are framework slabs, generated from the `icons`
-  entries in [Iconography](#iconography) with the `apple-framework-icon-design` generator. Each slab
-  takes the main color of the product it serves, and its three bands deepen from it: Claude's
-  terracotta, Codex's blue, Cursor's graphite, Computer Use's sky-to-pink, Swift's orange,
-  Homebrew's amber, and TRAE's black with green. The face carries the App's design grid and one
-  glyph that follows the product's own mark: the Claude spark, the Codex cloud with a prompt, the
-  Cursor cube, the Computer Use pointer, the Swift bird, the Homebrew mug and the TRAE pixel face.
+- **Component icons:** plugins are framework slabs, generated from the `icons` entries in
+  [Iconography](#iconography) with the `apple-framework-icon-design` generator. Each slab takes the
+  main color of the product it serves, and its three bands deepen from it: Claude's terracotta,
+  Codex's blue, Cursor's graphite, Computer Use's sky-to-pink, Swift's orange, and TRAE's black
+  with green. The face carries the App's design grid and one glyph that follows the product's own
+  mark: the Claude spark, the Codex cloud with a prompt, the Cursor cube, the Computer Use pointer,
+  the Swift bird and the TRAE pixel face. The shared workflows are a slab in the App's violet with
+  a cycle.
 - **App icons:** executables have Liquid Glass app icons on the App's violet field and design grid,
   generated from the `app_icons` entries with the `apple-app-icon-design` generator. The App is an
   original compact computer in ivory glass with an amber screen and a recessed chin, delivered as
   an Icon Composer document plus a legacy `AppIcon.icns` for macOS 14 and 15. Apple CLI is four
   glass tiles in the colors of Notes, Calendar and Mail, the fourth a dark terminal with a prompt.
-- **Screen glyph:** in a member's compositions the computer's screen shows its icon's glyph flat in
-  ink, with inlaid details in the screen's amber: a framework glyph's surface parts, and Apple
-  CLI's prompt. The Homebrew tap's screen shows the icons of the App and Apple CLI it installs.
-  Icons never carry the chat card or the link.
+- **Umbrella mark and distribution:** the App icon is the organization's mark and avatar. The
+  Homebrew tap distributes the App and Apple CLI and uses the App icon.
 - **Never:** SF Symbols or SF Pro inside brand artwork. The swift-sdk fork keeps its upstream
   identity.
 
 ## Iconography
 
 App icons are Liquid Glass icons generated from the `app_icons` entries with the
-`apple-app-icon-design` generator. Their layers are original artwork in `Brand/app-icon/layers/`,
-and both share its design grid. The App's layers are the computer's recessed chin, its amber screen
+`apple-app-icon-design` generator. Their layers are original artwork in
+`.github/design/icons/<name>/layers/`, and both use the App's design grid. The App's layers are the computer's recessed chin, its amber screen
 light and its ivory glass case; Apple CLI's are its three app tiles, its terminal tile and its
 prompt. Accepted lint findings, each by design: four groups keep the grid and three materials
 apart in each icon (the App's chin, screen light and case; Apple CLI's app tiles, terminal glass
@@ -442,7 +487,7 @@ face units.
           "name": "Grid",
           "layers": [
             {
-              "source": "Brand/app-icon/layers/grid.svg",
+              "source": ".github/design/icons/computer-mcp/layers/grid.svg",
               "name": "grid",
               "fill": {
                 "solid": "#FFFFFF"
@@ -460,7 +505,7 @@ face units.
           "name": "Base",
           "layers": [
             {
-              "source": "Brand/app-icon/layers/crt-base.svg",
+              "source": ".github/design/icons/computer-mcp/layers/crt-base.svg",
               "name": "crt-base",
               "fill": {
                 "automatic-gradient": "#D8CDB0A6"
@@ -486,7 +531,7 @@ face units.
           "name": "Light",
           "layers": [
             {
-              "source": "Brand/app-icon/layers/crt-light.svg",
+              "source": ".github/design/icons/computer-mcp/layers/crt-light.svg",
               "name": "crt-light",
               "fill": {
                 "automatic-gradient": "#FFB347"
@@ -506,7 +551,7 @@ face units.
           "name": "Computer",
           "layers": [
             {
-              "source": "Brand/app-icon/layers/crt-body.svg",
+              "source": ".github/design/icons/computer-mcp/layers/crt-body.svg",
               "name": "crt-body",
               "fill": {
                 "automatic-gradient": "#F6EEDBA6"
@@ -543,7 +588,7 @@ face units.
           "name": "Grid",
           "layers": [
             {
-              "source": "Brand/app-icon/layers/grid.svg",
+              "source": ".github/design/icons/computer-mcp/layers/grid.svg",
               "name": "grid",
               "fill": {
                 "solid": "#FFFFFF"
@@ -561,22 +606,22 @@ face units.
           "name": "Apps",
           "layers": [
             {
-              "source": "Brand/app-icon/layers/apple-cli-notes.svg",
-              "name": "apple-cli-notes",
+              "source": ".github/design/icons/apple-cli/layers/notes.svg",
+              "name": "notes",
               "fill": {
                 "automatic-gradient": "#FFD60A"
               }
             },
             {
-              "source": "Brand/app-icon/layers/apple-cli-calendar.svg",
-              "name": "apple-cli-calendar",
+              "source": ".github/design/icons/apple-cli/layers/calendar.svg",
+              "name": "calendar",
               "fill": {
                 "automatic-gradient": "#FF453A"
               }
             },
             {
-              "source": "Brand/app-icon/layers/apple-cli-mail.svg",
-              "name": "apple-cli-mail",
+              "source": ".github/design/icons/apple-cli/layers/mail.svg",
+              "name": "mail",
               "fill": {
                 "automatic-gradient": "#0A84FF"
               }
@@ -595,8 +640,8 @@ face units.
           "name": "Terminal",
           "layers": [
             {
-              "source": "Brand/app-icon/layers/apple-cli-terminal.svg",
-              "name": "apple-cli-terminal",
+              "source": ".github/design/icons/apple-cli/layers/terminal.svg",
+              "name": "terminal",
               "fill": {
                 "automatic-gradient": "#1D1B26D9"
               }
@@ -621,8 +666,8 @@ face units.
           "name": "Prompt",
           "layers": [
             {
-              "source": "Brand/app-icon/layers/apple-cli-prompt.svg",
-              "name": "apple-cli-prompt",
+              "source": ".github/design/icons/apple-cli/layers/prompt.svg",
+              "name": "prompt",
               "fill": {
                 "automatic-gradient": "#F6EEDB"
               }
@@ -1051,110 +1096,6 @@ face units.
       ],
       "glyph_side": "oklch(0.86 0.06 45)"
     },
-    "homebrew-tap": {
-      "hue": 70,
-      "bands": 3,
-      "glyph_rotation": -45,
-      "texture": {
-        "d": "M0 -0.6 V0.6 M-0.6 0 H0.6 M-0.25 -0.25 V0.25 M-0.25 -0.25 H0.25 M0.25 -0.25 V0.25 M-0.25 0.25 H0.25 M0.25 0.25 V0.452 Q0.25 0.47 0.268 0.47 H0.31 Q0.47 0.47 0.47 0.31 V0.25 Z M0.25 -0.25 V-0.452 Q0.25 -0.47 0.268 -0.47 H0.31 Q0.47 -0.47 0.47 -0.31 V-0.25 Z M-0.25 0.25 V0.452 Q-0.25 0.47 -0.268 0.47 H-0.31 Q-0.47 0.47 -0.47 0.31 V0.25 Z M-0.25 -0.25 V-0.452 Q-0.25 -0.47 -0.268 -0.47 H-0.31 Q-0.47 -0.47 -0.47 -0.31 V-0.25 Z",
-        "width": 0.009
-      },
-      "texture_opacity": 0.16,
-      "custom_glyph": {
-        "layers": [
-          {
-            "d": "M0.36 -0.10 H0.60 A0.18 0.18 0 0 1 0.78 0.08 V0.30 A0.18 0.18 0 0 1 0.60 0.48 H0.36",
-            "stroke": "#FFFFFF",
-            "width": 0.15
-          },
-          {
-            "d": "M-0.64 -0.30 H0.36 V0.62 A0.18 0.18 0 0 1 0.18 0.80 H-0.46 A0.18 0.18 0 0 1 -0.64 0.62 Z",
-            "fill": "#FFFFFF",
-            "round": 0.03
-          },
-          {
-            "circle": [
-              -0.44,
-              -0.4,
-              0.21
-            ],
-            "fill": "#FFFFFF"
-          },
-          {
-            "circle": [
-              -0.12,
-              -0.5,
-              0.25
-            ],
-            "fill": "#FFFFFF"
-          },
-          {
-            "circle": [
-              0.18,
-              -0.4,
-              0.2
-            ],
-            "fill": "#FFFFFF"
-          },
-          {
-            "d": "M-0.52 -0.14 H0.24 V0.58 A0.10 0.10 0 0 1 0.14 0.68 H-0.42 A0.10 0.10 0 0 1 -0.52 0.58 Z",
-            "fill": {
-              "colors": [
-                "oklch(0.84 0.15 82)",
-                "oklch(0.72 0.16 62)"
-              ],
-              "from": [
-                0,
-                -0.14
-              ],
-              "to": [
-                0,
-                0.68
-              ]
-            },
-            "surface": true
-          },
-          {
-            "circle": [
-              -0.26,
-              0.34,
-              0.05
-            ],
-            "fill": "#FFFFFF",
-            "surface": true
-          },
-          {
-            "circle": [
-              0.02,
-              0.12,
-              0.04
-            ],
-            "fill": "#FFFFFF",
-            "surface": true
-          },
-          {
-            "circle": [
-              -0.08,
-              0.48,
-              0.035
-            ],
-            "fill": "#FFFFFF",
-            "surface": true
-          }
-        ]
-      },
-      "glyph_scale": 0.34,
-      "face_colors": [
-        "oklch(0.86 0.15 88)",
-        "oklch(0.76 0.16 72)"
-      ],
-      "band_colors": [
-        "oklch(0.68 0.15 64)",
-        "oklch(0.59 0.13 57)",
-        "oklch(0.5 0.11 52)"
-      ],
-      "glyph_side": "oklch(0.88 0.05 75)"
-    },
     "plugin-trae": {
       "hue": 155,
       "bands": 3,
@@ -1188,6 +1129,29 @@ face units.
       ],
       "glyph_side": "oklch(0.55 0.14 158)",
       "texture_color": "oklch(0.8 0.08 158)"
+    },
+    "github-workflows": {
+      "hue": 275,
+      "bands": 3,
+      "glyph_rotation": -45,
+      "texture": {
+        "d": "M0 -0.6 V0.6 M-0.6 0 H0.6 M-0.25 -0.25 V0.25 M-0.25 -0.25 H0.25 M0.25 -0.25 V0.25 M-0.25 0.25 H0.25 M0.25 0.25 V0.452 Q0.25 0.47 0.268 0.47 H0.31 Q0.47 0.47 0.47 0.31 V0.25 Z M0.25 -0.25 V-0.452 Q0.25 -0.47 0.268 -0.47 H0.31 Q0.47 -0.47 0.47 -0.31 V-0.25 Z M-0.25 0.25 V0.452 Q-0.25 0.47 -0.268 0.47 H-0.31 Q-0.47 0.47 -0.47 0.31 V0.25 Z M-0.25 -0.25 V-0.452 Q-0.25 -0.47 -0.268 -0.47 H-0.31 Q-0.47 -0.47 -0.47 -0.31 V-0.25 Z",
+        "width": 0.009
+      },
+      "texture_opacity": 0.16,
+      "glyph": "cycle",
+      "glyph_scale": 0.34,
+      "face_colors": [
+        "oklch(0.66 0.17 282)",
+        "oklch(0.53 0.23 276)"
+      ],
+      "band_colors": [
+        "oklch(0.47 0.23 276)",
+        "oklch(0.41 0.21 277)",
+        "oklch(0.35 0.18 278)"
+      ],
+      "glyph_color": "#FFFFFF",
+      "glyph_side": "oklch(0.82 0.06 280)"
     }
   }
 }
@@ -1198,12 +1162,9 @@ face units.
 - **Primary button:** violet fill, white label in the interface sans, 12px radius.
 - **Secondary button:** raised surface with a 1px line border.
 - **Chat card:** raised surface, 20px radius, a title row naming the chat, and the request as an
-  amber bubble with ink text. Each member's request is one it serves, from `Brand/config.json`.
-- **Command card:** the code block carrying real commands behind amber prompts, with a 1px line
-  border in dark mode; it takes the chat card's place for the Homebrew tap, which people reach
-  from a terminal.
+  amber bubble with ink text.
 - **Computer:** the App icon's machine drawn flat — ivory case with a hairline edge, recessed chin,
-  amber screen carrying the member glyph or, for the App, the command and its result. Capability
+  amber screen carrying the work in progress, such as a command and its result. Capability
   chips beside the composition name Files, Shell, CLI, MCP, Skills and Computer Use.
 - **Link and packets:** a link-rail band with a 6px amber line; packets are raised pills naming
   the tool, such as `file.write`.
@@ -1215,8 +1176,7 @@ face units.
 
 - Do keep amber for the active path and violet for actions and links; never set amber text on a
   light surface.
-- Do show both the request — a chat, or a command card — and the computer whenever the link
-  appears.
+- Do show both the chat and the computer whenever the link appears.
 - Do draw the computer from the App icon's layers; never redraw or restyle it per surface.
 - Do render every image text with the bundled OFL fonts, in both light and dark.
 - Don't use gradients on cards or the computer, or rotate them.
@@ -1233,9 +1193,9 @@ keyboard operation and reduced-motion support.
 
 ## Iteration Guide
 
-Change tokens here first, then regenerate every asset with the organization renderer and deliver
-them through each repository's brand lock. A new component gets its own Iconography entry — a slab in the
-colors of the product it serves, with a glyph that follows that product's mark — and the same glyph
-on the computer's screen. Check the App icon in
-every macOS rendition, including Clear and Tinted, before delivery. The repository README lists the
-render, check and delivery commands.
+Change tokens here first. Regenerate icons with their generators and the organization profile and
+each repository's social preview with the `github-readme-design` toolchain, then deliver the
+consumed copies through each repository's own pull request and record them in the icon's
+`provenance.json`. A new component gets its own Iconography entry: a slab in the colors of the
+product it serves, with a glyph that follows that product's mark. Check the App icon in every macOS
+rendition, including Clear and Tinted, before delivery. The repository README lists the commands.

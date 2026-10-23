@@ -84,10 +84,12 @@ refresh the plugin catalog through the Computer MCP Release Notifier GitHub App.
 
 ## GitHub settings
 
-`python3 Scripts/check-settings.py` compares the organization's live settings
-with this section and the rulesets above, and lists every difference. Run it
-with an organization owner's `gh` login after changing a repository setting,
-an App or an Actions credential, and update this section in the same change.
+The [organization check](https://github.com/computer-mcp/github-workflows#organization-check)
+compares the organization's live settings with this section and the rulesets
+above, and lists every difference; it also compares `profile/catalog.json`
+with the public repositories and their About sentences. Run it with an
+organization owner's `gh` login after changing a repository setting, an App or
+an Actions credential, and update this section in the same change.
 
 - Every repository allows only squash merges and deletes merged branches. Its
   workflows, like the organization default, get a read-only token that cannot

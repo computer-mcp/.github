@@ -1,0 +1,118 @@
+{
+  "icon": "computer-mcp",
+  "skill": "apple-app-icon-design",
+  "skill_commit": "36707036061a2d0ba012184ef0b6d6820082127f",
+  "command": "python3 skills/apple-app-icon-design/scripts/app_icons.py DESIGN.md --name computer-mcp --style liquid-glass --out <dir>",
+  "renderer": "{\n  \"bundle-version\" : \"129\",\n  \"short-bundle-version\" : \"27.0\"\n}",
+  "verified_at": "2026-10-23",
+  "copies": [
+    {
+      "repository": "computer-mcp/.github",
+      "path": "profile/assets/mark-light.png",
+      "output": "renditions/macOS-Default.png",
+      "sha256": "71cbd902b28a083e7726abfa5d2fe506c860b5d954fd398686af1478e6250e80"
+    },
+    {
+      "repository": "computer-mcp/.github",
+      "path": "profile/assets/mark-dark.png",
+      "output": "renditions/macOS-Dark.png",
+      "sha256": "0176b4ea92d4df926edbb9bc5c47e706186a05c23264806a295e31675c68c77e"
+    },
+    {
+      "repository": "computer-mcp/.github",
+      "path": "profile/assets/avatar.png",
+      "output": "web/avatar-1024.png",
+      "sha256": "34ce8f1feb34c6f19f9927679fc3b6532bfaa3e884920d9374d61b70d54d9134"
+    },
+    {
+      "repository": "computer-mcp/computer-mcp",
+      "path": ".github/assets/logo/logo-light.png",
+      "output": "renditions/macOS-Default.png",
+      "sha256": "71cbd902b28a083e7726abfa5d2fe506c860b5d954fd398686af1478e6250e80"
+    },
+    {
+      "repository": "computer-mcp/computer-mcp",
+      "path": ".github/assets/logo/logo-dark.png",
+      "output": "renditions/macOS-Dark.png",
+      "sha256": "0176b4ea92d4df926edbb9bc5c47e706186a05c23264806a295e31675c68c77e"
+    },
+    {
+      "repository": "computer-mcp/homebrew-tap",
+      "path": ".github/assets/logo/logo-light.png",
+      "output": "renditions/macOS-Default.png",
+      "sha256": "71cbd902b28a083e7726abfa5d2fe506c860b5d954fd398686af1478e6250e80"
+    },
+    {
+      "repository": "computer-mcp/homebrew-tap",
+      "path": ".github/assets/logo/logo-dark.png",
+      "output": "renditions/macOS-Dark.png",
+      "sha256": "0176b4ea92d4df926edbb9bc5c47e706186a05c23264806a295e31675c68c77e"
+    },
+    {
+      "repository": "computer-mcp/computer-mcp.github.io",
+      "path": ".github/assets/logo/logo-light.png",
+      "output": "renditions/macOS-Default.png",
+      "sha256": "71cbd902b28a083e7726abfa5d2fe506c860b5d954fd398686af1478e6250e80"
+    },
+    {
+      "repository": "computer-mcp/computer-mcp.github.io",
+      "path": ".github/assets/logo/logo-dark.png",
+      "output": "renditions/macOS-Dark.png",
+      "sha256": "0176b4ea92d4df926edbb9bc5c47e706186a05c23264806a295e31675c68c77e"
+    },
+    {
+      "repository": "computer-mcp/computer-mcp",
+      "path": "Resources/ComputerMCPApp/AppIcon.icon/Assets/01-01.svg",
+      "output": "computer-mcp.icon/Assets/01-01.svg",
+      "sha256": "5695b3bb0134f47ca6950438df98dce38c92591b57af14ff6114135e857b9d0c"
+    },
+    {
+      "repository": "computer-mcp/computer-mcp",
+      "path": "Resources/ComputerMCPApp/AppIcon.icon/Assets/02-01.svg",
+      "output": "computer-mcp.icon/Assets/02-01.svg",
+      "sha256": "ab43ecd6e819f7f8713ddf9deecf02198c81d6ebcd0f1b86d4f159db506f98c7"
+    },
+    {
+      "repository": "computer-mcp/computer-mcp",
+      "path": "Resources/ComputerMCPApp/AppIcon.icon/Assets/03-01.svg",
+      "output": "computer-mcp.icon/Assets/03-01.svg",
+      "sha256": "497967f011f5147ccf039ff5fee3993764aad2c45746ce411f5058a392ca65a4"
+    },
+    {
+      "repository": "computer-mcp/computer-mcp",
+      "path": "Resources/ComputerMCPApp/AppIcon.icon/Assets/04-01.svg",
+      "output": "computer-mcp.icon/Assets/04-01.svg",
+      "sha256": "1323e36e89c20fce714888872965af41b2f5a17738d7a49aa69a198b95d9af54"
+    },
+    {
+      "repository": "computer-mcp/computer-mcp",
+      "path": "Resources/ComputerMCPApp/AppIcon.icon/icon.json",
+      "output": "computer-mcp.icon/icon.json",
+      "sha256": "5daf706ea7f4aba95985a2efc9a2cf1eeea797d4ef59db1c20920e61db10a2dd"
+    },
+    {
+      "repository": "computer-mcp/computer-mcp.github.io",
+      "path": "public/brand/favicon.svg",
+      "output": "web/favicon.svg",
+      "sha256": "67d61a4dd2abed510df22cb3165427bca3f00ece110ec889ef7136a951d1bb94"
+    },
+    {
+      "repository": "computer-mcp/computer-mcp.github.io",
+      "path": "public/brand/icon.svg",
+      "output": "web/favicon.svg",
+      "sha256": "67d61a4dd2abed510df22cb3165427bca3f00ece110ec889ef7136a951d1bb94"
+    },
+    {
+      "repository": "computer-mcp/computer-mcp.github.io",
+      "path": "public/brand/favicon-32.png",
+      "output": "web/favicon-32.png",
+      "sha256": "8897fa0aac13eb5719376881018579175d3536f0c6e6a21f617049cf8e435156"
+    },
+    {
+      "repository": "computer-mcp/computer-mcp.github.io",
+      "path": "public/brand/apple-touch-icon.png",
+      "output": "web/apple-touch-icon.png",
+      "sha256": "a03354d9ef09076806c88e46acef5ecee3739e0e20137ff8741c57df68cd6c92"
+    }
+  ]
+}

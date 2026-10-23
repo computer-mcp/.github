@@ -1,0 +1,22 @@
+{
+  "icon": "plugin-trae",
+  "skill": "apple-framework-icon-design",
+  "skill_commit": "36707036061a2d0ba012184ef0b6d6820082127f",
+  "command": "python3 skills/apple-framework-icon-design/scripts/design_icons.py DESIGN.md --out <dir> --png",
+  "renderer": "design_icons.py with rsvg-convert",
+  "verified_at": "2026-10-23",
+  "copies": [
+    {
+      "repository": "computer-mcp/plugin-trae",
+      "path": ".github/assets/logo/logo-light.png",
+      "output": "plugin-trae.png",
+      "sha256": "5a822a93923a6c80dcd104a25ab579652078a6782a7c6891d587a0a39d8b23f7"
+    },
+    {
+      "repository": "computer-mcp/plugin-trae",
+      "path": ".github/assets/logo/logo-dark.png",
+      "output": "plugin-trae.png",
+      "sha256": "5a822a93923a6c80dcd104a25ab579652078a6782a7c6891d587a0a39d8b23f7"
+    }
+  ]
+}
