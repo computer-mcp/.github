@@ -39,7 +39,7 @@ jobs:
   organization:
     permissions:
       contents: read
-    uses: computer-mcp/github-workflows/.github/workflows/organization.yml@4359ca27a4637460ba8d3f6461e42701f76f647a
+    uses: computer-mcp/github-workflows/.github/workflows/organization.yml@36a8e11e46fc8831397cebab54cd4657dcac7898
     with:
       # The catalog under review must match the live inventory and About sentences.
       declaration-revision: ${{ github.event.pull_request.head.sha || github.sha }}
