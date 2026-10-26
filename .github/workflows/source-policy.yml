@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   policy:
-    uses: computer-mcp/github-workflows/.github/workflows/policy.yml@36a8e11e46fc8831397cebab54cd4657dcac7898
+    uses: computer-mcp/github-workflows/.github/workflows/policy.yml@fd25fcface41732fda099017c6945912366fc7c1
     with:
       # A pull request is checked against the accepted rules, not the rules it proposes.
       declaration-revision: ${{ github.event.pull_request.base.sha || github.sha }}
