@@ -1,0 +1,24 @@
+{
+  "instructions": {
+    "chatgpt": {},
+    "sections": [
+      {
+        "hash": "sha256:e9e56cb5f7771d0c97062dd3bffdf2ac93596d911771a49536d38200f5b6ee57",
+        "name": "guide",
+        "path": ".agent/instructions/guide.md",
+        "source": "."
+      }
+    ],
+    "targets": {
+      "AGENTS.md": {
+        "agents": ["claude-code", "codex"],
+        "blockHash": "sha256:876da536153d59a8ec8f23019a87b6e0324e44fb79e4c9f892852ba9f9539657",
+        "created": false,
+        "headingOffset": 0
+      }
+    }
+  },
+  "skills": {},
+  "sources": {},
+  "version": 1
+}
