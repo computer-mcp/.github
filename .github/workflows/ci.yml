@@ -15,19 +15,19 @@ jobs:
         with:
           persist-credentials: false
       - name: Lint DESIGN.md
-        uses: showxu/skills/skills/github-readme-design/scripts@36707036061a2d0ba012184ef0b6d6820082127f
+        uses: showxu/skills/skills/github-readme-design/scripts@fc3529f199d43d1df6968bfc682220d3e75a2c4b
         with:
           asset: design
           command: lint
           design: DESIGN.md
       - name: Check the organization profile
-        uses: showxu/skills/skills/github-readme-design/scripts@36707036061a2d0ba012184ef0b6d6820082127f
+        uses: showxu/skills/skills/github-readme-design/scripts@fc3529f199d43d1df6968bfc682220d3e75a2c4b
         with:
           asset: profile
           design: DESIGN.md
           catalog: profile/catalog.json
       - name: Check this repository's social preview
-        uses: showxu/skills/skills/github-readme-design/scripts@36707036061a2d0ba012184ef0b6d6820082127f
+        uses: showxu/skills/skills/github-readme-design/scripts@fc3529f199d43d1df6968bfc682220d3e75a2c4b
         with:
           asset: social-preview
           design: DESIGN.md
